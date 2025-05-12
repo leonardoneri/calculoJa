@@ -9,11 +9,21 @@ const nextConfig = {
   },
   images: {
     domains: ['placeholder.com'],
-    unoptimized: true,
+    formats: ['image/avif', 'image/webp'],
+    unoptimized: false,
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60,
   },
   experimental: {
-    mdxRs: false, // Alterando para false para evitar problemas com o módulo astring
+    mdxRs: false,
+    optimizeCss: true,
+    optimizeServerReact: true,
+    scrollRestoration: true,
   },
+  swcMinify: true,
+  compress: true,
+  poweredByHeader: false,
   async rewrites() {
     return [
       {
@@ -31,7 +41,53 @@ const nextConfig = {
       },
     ];
   },
-  // Configuração do Sentry removida para evitar avisos
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'X-DNS-Prefetch-Control',
+            value: 'on',
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'origin-when-cross-origin',
+          },
+        ],
+      },
+      {
+        source: '/(images|icons|fonts)/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          }
+        ],
+      },
+      {
+        source: '/_next/static/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          }
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
