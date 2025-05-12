@@ -25,6 +25,10 @@ const categoryMap: Record<string, { title: string, description: string }> = {
     title: "Calculadoras Veterinárias",
     description: "Ferramentas especializadas para cuidados com animais de estimação.",
   },
+  "business": {
+    title: "Calculadoras de Negócios",
+    description: "Otimize sua gestão empresarial com ferramentas para análise de custos, preços e lucratividade.",
+  },
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -58,10 +62,15 @@ export default async function CategoryPage({ params }: Props) {
     notFound()
   }
 
-  const calculators = await getCalculatorsByCategory(categoryEnum)
-
-  // Log para debug
-  console.log(`Categoria URL: ${category}, Enum: ${categoryEnum}, Calculadoras: ${calculators.length}`)
+  let calculators = []
+  let errorOccurred = false
+  
+  try {
+    calculators = await getCalculatorsByCategory(categoryEnum)
+  } catch (error) {
+    console.error(`Erro ao buscar calculadoras para a categoria ${category}:`, error)
+    errorOccurred = true
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-12">
@@ -70,9 +79,25 @@ export default async function CategoryPage({ params }: Props) {
         <p className="text-lg text-gray-600">{categoryInfo.description}</p>
       </div>
 
-      {calculators.length === 0 ? (
-        <div className="text-center py-8 bg-gray-50 rounded-lg">
-          <p className="text-gray-500">Nenhuma calculadora disponível nesta categoria no momento.</p>
+      {errorOccurred ? (
+        <div className="text-center py-8 bg-red-50 rounded-lg border border-red-100">
+          <h2 className="text-xl font-semibold text-red-700 mb-2">Ocorreu um erro</h2>
+          <p className="text-gray-700 mb-4">
+            Não foi possível carregar as calculadoras desta categoria no momento. Por favor, tente novamente mais tarde.
+          </p>
+          <Link href="/" className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg">
+            Voltar para a página inicial
+          </Link>
+        </div>
+      ) : calculators.length === 0 ? (
+        <div className="text-center py-8 bg-yellow-50 rounded-lg border border-yellow-100">
+          <h2 className="text-xl font-semibold text-yellow-700 mb-2">Estamos trabalhando nisso!</h2>
+          <p className="text-gray-700 mb-4">
+            Ainda não temos calculadoras disponíveis nesta categoria, mas estamos desenvolvendo novas ferramentas para você!
+          </p>
+          <Link href="/" className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg">
+            Voltar para a página inicial
+          </Link>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

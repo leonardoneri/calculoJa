@@ -49,6 +49,24 @@ export default function Header() {
               Finanças
             </Link>
             <Link
+              href={`/categoria/${CalculatorCategory.CONVERSION.toLowerCase()}`}
+              className={`hover:text-blue-600 ${pathname.includes(CalculatorCategory.CONVERSION.toLowerCase()) ? "text-blue-600 font-medium" : "text-gray-600"}`}
+            >
+              Conversão
+            </Link>
+            <Link
+              href={`/categoria/${CalculatorCategory.VETERINARY.toLowerCase()}`}
+              className={`hover:text-blue-600 ${pathname.includes(CalculatorCategory.VETERINARY.toLowerCase()) ? "text-blue-600 font-medium" : "text-gray-600"}`}
+            >
+              Veterinária
+            </Link>
+            <Link
+              href={`/categoria/${CalculatorCategory.BUSINESS.toLowerCase()}`}
+              className={`hover:text-blue-600 ${pathname.includes(CalculatorCategory.BUSINESS.toLowerCase()) ? "text-blue-600 font-medium" : "text-gray-600"}`}
+            >
+              Negócios
+            </Link>
+            <Link
               href="/sobre"
               className={`hover:text-blue-600 ${pathname === "/sobre" ? "text-blue-600 font-medium" : "text-gray-600"}`}
             >
@@ -95,6 +113,27 @@ export default function Header() {
                 onClick={() => setIsMenuOpen(false)}
               >
                 Finanças
+              </Link>
+              <Link
+                href={`/categoria/${CalculatorCategory.CONVERSION.toLowerCase()}`}
+                className={`hover:text-blue-600 ${pathname.includes(CalculatorCategory.CONVERSION.toLowerCase()) ? "text-blue-600 font-medium" : "text-gray-600"}`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Conversão
+              </Link>
+              <Link
+                href={`/categoria/${CalculatorCategory.VETERINARY.toLowerCase()}`}
+                className={`hover:text-blue-600 ${pathname.includes(CalculatorCategory.VETERINARY.toLowerCase()) ? "text-blue-600 font-medium" : "text-gray-600"}`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Veterinária
+              </Link>
+              <Link
+                href={`/categoria/${CalculatorCategory.BUSINESS.toLowerCase()}`}
+                className={`hover:text-blue-600 ${pathname.includes(CalculatorCategory.BUSINESS.toLowerCase()) ? "text-blue-600 font-medium" : "text-gray-600"}`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Negócios
               </Link>
               <Link
                 href="/sobre"
