@@ -9,15 +9,11 @@ interface PontoEquilibrioCalculatorProps {
   config: any
 }
 
-const pontoEquilibrioSchema = z.object({
-  fixedCosts: z.number().nonnegative("Os custos fixos devem ser maiores ou iguais a zero"),
-  unitPrice: z.number().positive("O preço unitário deve ser maior que zero"),
-  unitVariableCost: z
-    .number()
-    .nonnegative("O custo variável unitário deve ser maior ou igual a zero")
-    .refine((val) => val >= 0, {
-      message: "O custo variável unitário deve ser maior ou igual a zero",
-    }),
+const breakEvenSchema = z.object({
+  fixedCosts: z.number().min(0, "Os custos fixos não podem ser negativos"),
+  variableCostPerUnit: z.number().min(0, "O custo variável por unidade não pode ser negativo"),
+  pricePerUnit: z.number().min(0.01, "O preço por unidade deve ser maior que zero"),
+  contributionMarginRatio: z.number().optional(),
 })
 
 export default function PontoEquilibrioCalculator({
@@ -26,33 +22,55 @@ export default function PontoEquilibrioCalculator({
   config,
 }: PontoEquilibrioCalculatorProps) {
   const [fixedCosts, setFixedCosts] = useState<string>("")
-  const [unitPrice, setUnitPrice] = useState<string>("")
-  const [unitVariableCost, setUnitVariableCost] = useState<string>("")
+  const [variableCostPerUnit, setVariableCostPerUnit] = useState<string>("")
+  const [pricePerUnit, setPricePerUnit] = useState<string>("")
+  const [unit, setUnit] = useState<string>("unidades")
   const [result, setResult] = useState<any>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const validateInput = () => {
     try {
       const fixedCostsNum = Number.parseFloat(fixedCosts)
-      const unitPriceNum = Number.parseFloat(unitPrice)
-      const unitVariableCostNum = Number.parseFloat(unitVariableCost)
+      const variableCostPerUnitNum = Number.parseFloat(variableCostPerUnit)
+      const pricePerUnitNum = Number.parseFloat(pricePerUnit)
 
-      // Additional validation to ensure unitVariableCost < unitPrice
-      if (unitVariableCostNum >= unitPriceNum) {
-        setErrors({
-          unitVariableCost: "O custo variável unitário deve ser menor que o preço de venda",
-        })
+      if (isNaN(fixedCostsNum)) {
+        setErrors({ fixedCosts: "Os custos fixos devem ser um número válido" })
+        return null
+      }
+      
+      if (isNaN(variableCostPerUnitNum)) {
+        setErrors({ variableCostPerUnit: "O custo variável por unidade deve ser um número válido" })
+        return null
+      }
+      
+      if (isNaN(pricePerUnitNum)) {
+        setErrors({ pricePerUnit: "O preço por unidade deve ser um número válido" })
         return null
       }
 
-      pontoEquilibrioSchema.parse({
+      if (pricePerUnitNum <= variableCostPerUnitNum) {
+        setErrors({ pricePerUnit: "O preço deve ser maior que o custo variável por unidade" })
+        return null
+      }
+
+      // Calculate contribution margin ratio
+      const contributionMarginRatio = (pricePerUnitNum - variableCostPerUnitNum) / pricePerUnitNum
+
+      breakEvenSchema.parse({
         fixedCosts: fixedCostsNum,
-        unitPrice: unitPriceNum,
-        unitVariableCost: unitVariableCostNum,
+        variableCostPerUnit: variableCostPerUnitNum,
+        pricePerUnit: pricePerUnitNum,
+        contributionMarginRatio,
       })
 
       setErrors({})
-      return { fixedCostsNum, unitPriceNum, unitVariableCostNum }
+      return {
+        fixedCostsNum,
+        variableCostPerUnitNum,
+        pricePerUnitNum,
+        contributionMarginRatio,
+      }
     } catch (error) {
       if (error instanceof z.ZodError) {
         const newErrors: Record<string, string> = {}
@@ -71,151 +89,230 @@ export default function PontoEquilibrioCalculator({
     const validatedInput = validateInput()
     if (!validatedInput) return
 
-    const { fixedCostsNum, unitPriceNum, unitVariableCostNum } = validatedInput
+    const { fixedCostsNum, variableCostPerUnitNum, pricePerUnitNum, contributionMarginRatio } = validatedInput
 
-    // Calculate unit contribution margin
-    const unitContributionMargin = unitPriceNum - unitVariableCostNum
+    // Ponto de equilíbrio em quantidade (unidades)
+    const breakEvenUnits = fixedCostsNum / (pricePerUnitNum - variableCostPerUnitNum)
+    
+    // Ponto de equilíbrio em valor (receita)
+    const breakEvenRevenue = breakEvenUnits * pricePerUnitNum
+    
+    // Arredondar para o número inteiro superior (sempre uma unidade inteira a mais para garantir lucro)
+    const breakEvenUnitsCeil = Math.ceil(breakEvenUnits)
+    
+    // Margem de contribuição por unidade
+    const contributionMarginPerUnit = pricePerUnitNum - variableCostPerUnitNum
+    
+    // Margem de contribuição total no ponto de equilíbrio
+    const totalContributionMargin = breakEvenUnits * contributionMarginPerUnit
+    
+    // Percentual da margem de contribuição
+    const contributionMarginPercentage = contributionMarginRatio * 100
 
-    // Calculate contribution margin ratio
-    const contributionMarginRatio = unitContributionMargin / unitPriceNum
-
-    // Calculate break-even point in units
-    const breakEvenUnits = fixedCostsNum / unitContributionMargin
-
-    // Calculate break-even point in revenue
-    const breakEvenRevenue = breakEvenUnits * unitPriceNum
-
-    // Calculate profit at different sales levels
-    const salesLevels = [
-      Math.round(breakEvenUnits * 0.5), // 50% of break-even
-      Math.round(breakEvenUnits * 0.75), // 75% of break-even
-      Math.round(breakEvenUnits), // At break-even
-      Math.round(breakEvenUnits * 1.25), // 125% of break-even
-      Math.round(breakEvenUnits * 1.5), // 150% of break-even
-    ]
-
-    const profitAnalysis = salesLevels.map((units) => {
-      const revenue = units * unitPriceNum
-      const variableCosts = units * unitVariableCostNum
-      const totalCosts = fixedCostsNum + variableCosts
-      const profit = revenue - totalCosts
-
-      return {
-        units,
-        revenue: Number.parseFloat(revenue.toFixed(2)),
-        variableCosts: Number.parseFloat(variableCosts.toFixed(2)),
-        fixedCosts: fixedCostsNum,
-        totalCosts: Number.parseFloat(totalCosts.toFixed(2)),
-        profit: Number.parseFloat(profit.toFixed(2)),
-      }
-    })
-
-    // Calculate safety margin
-    const targetSales = breakEvenUnits * 1.2 // 20% above break-even as an example
-    const safetyMargin = ((targetSales - breakEvenUnits) / targetSales) * 100
+    // Arredondar para o número de casas decimais configurado
+    const decimalPlaces = config?.decimalPlaces || 2
+    
+    // Cálculo para análise de sensibilidade
+    const sensitivityAnalysis = calculateSensitivityAnalysis(
+      fixedCostsNum,
+      variableCostPerUnitNum,
+      pricePerUnitNum,
+      breakEvenUnits,
+      decimalPlaces
+    )
 
     const calculationResult = {
       fixedCosts: fixedCostsNum,
-      unitPrice: unitPriceNum,
-      unitVariableCost: unitVariableCostNum,
-      unitContributionMargin: Number.parseFloat(unitContributionMargin.toFixed(2)),
-      contributionMarginRatio: Number.parseFloat((contributionMarginRatio * 100).toFixed(2)),
-      breakEvenUnits: Math.round(breakEvenUnits),
-      breakEvenRevenue: Number.parseFloat(breakEvenRevenue.toFixed(2)),
-      profitAnalysis,
-      safetyMargin: Number.parseFloat(safetyMargin.toFixed(2)),
+      variableCostPerUnit: variableCostPerUnitNum,
+      pricePerUnit: pricePerUnitNum,
+      unit,
+      breakEvenUnits: Number(breakEvenUnits.toFixed(decimalPlaces)),
+      breakEvenUnitsCeil: breakEvenUnitsCeil,
+      breakEvenRevenue: Number(breakEvenRevenue.toFixed(decimalPlaces)),
+      contributionMarginPerUnit: Number(contributionMarginPerUnit.toFixed(decimalPlaces)),
+      contributionMarginPercentage: Number(contributionMarginPercentage.toFixed(decimalPlaces)),
+      totalContributionMargin: Number(totalContributionMargin.toFixed(decimalPlaces)),
+      sensitivityAnalysis,
+      formula: {
+        units: "CF ÷ (P - CVu)",
+        revenue: "CF ÷ (1 - (CVu ÷ P))",
+      },
     }
 
     setResult(calculationResult)
 
     // Call parent callbacks
     onInputChange("fixedCosts", fixedCostsNum)
-    onInputChange("unitPrice", unitPriceNum)
-    onInputChange("unitVariableCost", unitVariableCostNum)
+    onInputChange("variableCostPerUnit", variableCostPerUnitNum)
+    onInputChange("pricePerUnit", pricePerUnitNum)
+    onInputChange("unit", unit)
     onCalculate(calculationResult)
   }
 
-  // Calculate automatically when inputs change
-  useEffect(() => {
-    if (fixedCosts && unitPrice && unitVariableCost) {
-      const fixedCostsNum = Number.parseFloat(fixedCosts)
-      const unitPriceNum = Number.parseFloat(unitPrice)
-      const unitVariableCostNum = Number.parseFloat(unitVariableCost)
-
-      if (
-        !isNaN(fixedCostsNum) &&
-        !isNaN(unitPriceNum) &&
-        !isNaN(unitVariableCostNum) &&
-        fixedCostsNum >= 0 &&
-        unitPriceNum > 0 &&
-        unitVariableCostNum >= 0 &&
-        unitVariableCostNum < unitPriceNum
-      ) {
-        calculateBreakEven()
-      }
-    }
-  }, [fixedCosts, unitPrice, unitVariableCost])
+  // Cálculo para análise de sensibilidade
+  const calculateSensitivityAnalysis = (
+    fixedCosts: number,
+    variableCostPerUnit: number,
+    pricePerUnit: number,
+    breakEvenUnits: number,
+    decimalPlaces: number
+  ) => {
+    const analysis = []
+    
+    // Variação de ±15% para preço
+    const priceSensitivityPlus = (fixedCosts / (pricePerUnit * 1.15 - variableCostPerUnit)).toFixed(decimalPlaces)
+    const priceSensitivityMinus = (fixedCosts / (pricePerUnit * 0.85 - variableCostPerUnit)).toFixed(decimalPlaces)
+    
+    // Variação de ±15% para custo variável
+    const variableCostSensitivityPlus = (fixedCosts / (pricePerUnit - variableCostPerUnit * 1.15)).toFixed(decimalPlaces)
+    const variableCostSensitivityMinus = (fixedCosts / (pricePerUnit - variableCostPerUnit * 0.85)).toFixed(decimalPlaces)
+    
+    // Variação de ±15% para custo fixo
+    const fixedCostSensitivityPlus = ((fixedCosts * 1.15) / (pricePerUnit - variableCostPerUnit)).toFixed(decimalPlaces)
+    const fixedCostSensitivityMinus = ((fixedCosts * 0.85) / (pricePerUnit - variableCostPerUnit)).toFixed(decimalPlaces)
+    
+    analysis.push({
+      label: "Se o preço aumentar 15%",
+      units: Number(priceSensitivityPlus),
+      change: Number((((Number(priceSensitivityPlus) - breakEvenUnits) / breakEvenUnits) * 100).toFixed(1)),
+    })
+    
+    analysis.push({
+      label: "Se o preço diminuir 15%",
+      units: Number(priceSensitivityMinus),
+      change: Number((((Number(priceSensitivityMinus) - breakEvenUnits) / breakEvenUnits) * 100).toFixed(1)),
+    })
+    
+    analysis.push({
+      label: "Se o custo variável aumentar 15%",
+      units: Number(variableCostSensitivityPlus),
+      change: Number((((Number(variableCostSensitivityPlus) - breakEvenUnits) / breakEvenUnits) * 100).toFixed(1)),
+    })
+    
+    analysis.push({
+      label: "Se o custo variável diminuir 15%",
+      units: Number(variableCostSensitivityMinus),
+      change: Number((((Number(variableCostSensitivityMinus) - breakEvenUnits) / breakEvenUnits) * 100).toFixed(1)),
+    })
+    
+    analysis.push({
+      label: "Se o custo fixo aumentar 15%",
+      units: Number(fixedCostSensitivityPlus),
+      change: Number((((Number(fixedCostSensitivityPlus) - breakEvenUnits) / breakEvenUnits) * 100).toFixed(1)),
+    })
+    
+    analysis.push({
+      label: "Se o custo fixo diminuir 15%",
+      units: Number(fixedCostSensitivityMinus),
+      change: Number((((Number(fixedCostSensitivityMinus) - breakEvenUnits) / breakEvenUnits) * 100).toFixed(1)),
+    })
+    
+    return analysis
+  }
 
   // Format currency
   const formatCurrency = (value: number) => {
-    return value.toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    })
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+    }).format(value)
   }
+
+  // Calculate automatically when all inputs are valid
+  useEffect(() => {
+    if (fixedCosts && variableCostPerUnit && pricePerUnit) {
+      const fixedCostsNum = Number.parseFloat(fixedCosts)
+      const variableCostPerUnitNum = Number.parseFloat(variableCostPerUnit)
+      const pricePerUnitNum = Number.parseFloat(pricePerUnit)
+
+      if (!isNaN(fixedCostsNum) && !isNaN(variableCostPerUnitNum) && !isNaN(pricePerUnitNum) && 
+          pricePerUnitNum > variableCostPerUnitNum) {
+        calculateBreakEven()
+      }
+    }
+  }, [fixedCosts, variableCostPerUnit, pricePerUnit, unit])
 
   return (
     <div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div>
           <label htmlFor="fixedCosts" className="block text-sm font-medium text-gray-700 mb-1">
-            Custos Fixos Totais (R$/mês)
+            Custos Fixos (mensais)
           </label>
-          <input
-            id="fixedCosts"
-            type="number"
-            value={fixedCosts}
-            onChange={(e) => setFixedCosts(e.target.value)}
-            placeholder="Ex: 10000"
-            className="calculator-input"
-            min="0"
-            step="0.01"
-          />
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <span className="text-gray-500 sm:text-sm">R$</span>
+            </div>
+            <input
+              id="fixedCosts"
+              type="number"
+              value={fixedCosts}
+              onChange={(e) => setFixedCosts(e.target.value)}
+              placeholder="Ex: 5000"
+              className="calculator-input pl-10"
+              step="0.01"
+              min="0"
+            />
+          </div>
           {errors.fixedCosts && <p className="text-red-500 text-sm mt-1">{errors.fixedCosts}</p>}
         </div>
 
         <div>
-          <label htmlFor="unitPrice" className="block text-sm font-medium text-gray-700 mb-1">
-            Preço de Venda Unitário (R$)
+          <label htmlFor="unit" className="block text-sm font-medium text-gray-700 mb-1">
+            Unidade de Medida
           </label>
           <input
-            id="unitPrice"
-            type="number"
-            value={unitPrice}
-            onChange={(e) => setUnitPrice(e.target.value)}
-            placeholder="Ex: 50"
+            id="unit"
+            type="text"
+            value={unit}
+            onChange={(e) => setUnit(e.target.value)}
+            placeholder="Ex: unidades, peças, horas"
             className="calculator-input"
-            min="0.01"
-            step="0.01"
           />
-          {errors.unitPrice && <p className="text-red-500 text-sm mt-1">{errors.unitPrice}</p>}
         </div>
 
         <div>
-          <label htmlFor="unitVariableCost" className="block text-sm font-medium text-gray-700 mb-1">
-            Custo Variável Unitário (R$)
+          <label htmlFor="variableCostPerUnit" className="block text-sm font-medium text-gray-700 mb-1">
+            Custo Variável por {unit}
           </label>
-          <input
-            id="unitVariableCost"
-            type="number"
-            value={unitVariableCost}
-            onChange={(e) => setUnitVariableCost(e.target.value)}
-            placeholder="Ex: 30"
-            className="calculator-input"
-            min="0"
-            step="0.01"
-          />
-          {errors.unitVariableCost && <p className="text-red-500 text-sm mt-1">{errors.unitVariableCost}</p>}
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <span className="text-gray-500 sm:text-sm">R$</span>
+            </div>
+            <input
+              id="variableCostPerUnit"
+              type="number"
+              value={variableCostPerUnit}
+              onChange={(e) => setVariableCostPerUnit(e.target.value)}
+              placeholder="Ex: 10"
+              className="calculator-input pl-10"
+              step="0.01"
+              min="0"
+            />
+          </div>
+          {errors.variableCostPerUnit && <p className="text-red-500 text-sm mt-1">{errors.variableCostPerUnit}</p>}
+        </div>
+
+        <div>
+          <label htmlFor="pricePerUnit" className="block text-sm font-medium text-gray-700 mb-1">
+            Preço de Venda por {unit}
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <span className="text-gray-500 sm:text-sm">R$</span>
+            </div>
+            <input
+              id="pricePerUnit"
+              type="number"
+              value={pricePerUnit}
+              onChange={(e) => setPricePerUnit(e.target.value)}
+              placeholder="Ex: 25"
+              className="calculator-input pl-10"
+              step="0.01"
+              min="0.01"
+            />
+          </div>
+          {errors.pricePerUnit && <p className="text-red-500 text-sm mt-1">{errors.pricePerUnit}</p>}
         </div>
       </div>
 
@@ -227,73 +324,98 @@ export default function PontoEquilibrioCalculator({
         <div className="calculator-result">
           <h3 className="text-lg font-semibold mb-4">Resultado:</h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div className="bg-blue-50 p-4 rounded-md border border-blue-100">
-              <p className="text-sm text-gray-600 mb-1">Ponto de Equilíbrio (Unidades)</p>
-              <p className="text-xl font-bold text-blue-700">{result.breakEvenUnits.toLocaleString()} unidades</p>
-              <p className="text-xs text-gray-500 mt-1">Quantidade necessária para cobrir todos os custos</p>
-            </div>
-
-            <div className="bg-green-50 p-4 rounded-md border border-green-100">
-              <p className="text-sm text-gray-600 mb-1">Ponto de Equilíbrio (Receita)</p>
-              <p className="text-xl font-bold text-green-700">{formatCurrency(result.breakEvenRevenue)}</p>
-              <p className="text-xs text-gray-500 mt-1">Faturamento necessário para cobrir todos os custos</p>
-            </div>
-
-            <div className="bg-purple-50 p-4 rounded-md border border-purple-100">
-              <p className="text-sm text-gray-600 mb-1">Margem de Contribuição Unitária</p>
-              <p className="text-xl font-bold text-purple-700">{formatCurrency(result.unitContributionMargin)}</p>
-              <p className="text-xs text-gray-500 mt-1">
-                Quanto cada unidade contribui para cobrir custos fixos e gerar lucro
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="bg-blue-50 p-6 rounded-md border border-blue-100 flex flex-col items-center justify-center">
+              <h4 className="text-lg font-semibold text-blue-800 mb-2">Ponto de Equilíbrio</h4>
+              <div className="text-4xl font-bold text-blue-700 mb-2">
+                {Math.ceil(result.breakEvenUnits)} <span className="text-lg">{result.unit}</span>
+              </div>
+              <p className="text-sm text-gray-600">
+                Você precisa vender pelo menos {Math.ceil(result.breakEvenUnits)} {result.unit} por mês
               </p>
             </div>
 
-            <div className="bg-amber-50 p-4 rounded-md border border-amber-100">
-              <p className="text-sm text-gray-600 mb-1">Índice de Margem de Contribuição</p>
-              <p className="text-xl font-bold text-amber-700">{result.contributionMarginRatio}%</p>
-              <p className="text-xs text-gray-500 mt-1">
-                Percentual da receita que contribui para cobrir custos fixos e gerar lucro
+            <div className="bg-green-50 p-6 rounded-md border border-green-100 flex flex-col items-center justify-center">
+              <h4 className="text-lg font-semibold text-green-800 mb-2">Receita no Ponto de Equilíbrio</h4>
+              <div className="text-4xl font-bold text-green-700 mb-2">
+                {formatCurrency(result.breakEvenRevenue)}
+              </div>
+              <p className="text-sm text-gray-600">
+                Faturamento mínimo mensal necessário
               </p>
             </div>
           </div>
 
+          <div className="mb-8 bg-gray-50 p-4 rounded-md border border-gray-200">
+            <h4 className="font-medium mb-3">Análise de Contribuição</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-3 bg-gray-100 rounded-md">
+                <div className="text-sm text-gray-500 mb-1">Margem de Contribuição por {result.unit}</div>
+                <div className="font-semibold text-xl">{formatCurrency(result.contributionMarginPerUnit)}</div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {formatCurrency(result.pricePerUnit)} - {formatCurrency(result.variableCostPerUnit)}
+                </div>
+              </div>
+              
+              <div className="p-3 bg-gray-100 rounded-md">
+                <div className="text-sm text-gray-500 mb-1">Margem de Contribuição (%)</div>
+                <div className="font-semibold text-xl">{result.contributionMarginPercentage}%</div>
+                <div className="text-xs text-gray-500 mt-1">
+                  ({formatCurrency(result.contributionMarginPerUnit)} ÷ {formatCurrency(result.pricePerUnit)}) × 100
+                </div>
+              </div>
+              
+              <div className="p-3 bg-gray-100 rounded-md">
+                <div className="text-sm text-gray-500 mb-1">Contribuição Total no P.E.</div>
+                <div className="font-semibold text-xl">{formatCurrency(result.totalContributionMargin)}</div>
+                <div className="text-xs text-gray-500 mt-1">
+                  Igual aos custos fixos: {formatCurrency(result.fixedCosts)}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mb-8 bg-blue-50 p-4 rounded-md border border-blue-100">
+            <h4 className="font-medium mb-3 text-blue-800">Fórmulas Utilizadas</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-center">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Quantidade de {result.unit}</p>
+                <p className="font-mono bg-white p-2 rounded border border-blue-100">
+                  P.E. = {formatCurrency(result.fixedCosts)} ÷ ({formatCurrency(result.pricePerUnit)} - {formatCurrency(result.variableCostPerUnit)})
+                </p>
+              </div>
+              
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Valor em R$</p>
+                <p className="font-mono bg-white p-2 rounded border border-blue-100">
+                  P.E. = {formatCurrency(result.fixedCosts)} ÷ {result.contributionMarginPercentage}%
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div className="mb-6">
-            <h4 className="font-medium mb-2">Análise de Lucro em Diferentes Níveis de Venda:</h4>
+            <h4 className="font-medium mb-3">Análise de Sensibilidade</h4>
             <div className="overflow-x-auto">
-              <table className="min-w-full bg-white border border-gray-200">
+              <table className="min-w-full bg-white border border-gray-200 rounded-md">
                 <thead>
-                  <tr className="bg-gray-100">
-                    <th className="py-2 px-4 border-b text-left">Unidades</th>
-                    <th className="py-2 px-4 border-b text-right">Receita</th>
-                    <th className="py-2 px-4 border-b text-right">Custos Variáveis</th>
-                    <th className="py-2 px-4 border-b text-right">Custos Fixos</th>
-                    <th className="py-2 px-4 border-b text-right">Custos Totais</th>
-                    <th className="py-2 px-4 border-b text-right">Lucro/Prejuízo</th>
+                  <tr>
+                    <th className="py-2 px-4 border-b border-gray-200 text-left text-sm font-medium text-gray-700">Cenário</th>
+                    <th className="py-2 px-4 border-b border-gray-200 text-right text-sm font-medium text-gray-700">P.E. ({result.unit})</th>
+                    <th className="py-2 px-4 border-b border-gray-200 text-right text-sm font-medium text-gray-700">Variação</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {result.profitAnalysis.map((analysis: any, index: number) => (
-                    <tr
-                      key={index}
-                      className={`border-b hover:bg-gray-50 ${
-                        analysis.profit < 0 ? "bg-red-50" : analysis.profit === 0 ? "bg-yellow-50" : "bg-green-50"
-                      }`}
-                    >
-                      <td className="py-2 px-4">{analysis.units.toLocaleString()}</td>
-                      <td className="py-2 px-4 text-right">{formatCurrency(analysis.revenue)}</td>
-                      <td className="py-2 px-4 text-right">{formatCurrency(analysis.variableCosts)}</td>
-                      <td className="py-2 px-4 text-right">{formatCurrency(analysis.fixedCosts)}</td>
-                      <td className="py-2 px-4 text-right">{formatCurrency(analysis.totalCosts)}</td>
-                      <td
-                        className={`py-2 px-4 text-right font-medium ${
-                          analysis.profit < 0
-                            ? "text-red-600"
-                            : analysis.profit > 0
-                              ? "text-green-600"
-                              : "text-yellow-600"
-                        }`}
-                      >
-                        {formatCurrency(analysis.profit)}
+                  {result.sensitivityAnalysis.map((item: any, index: number) => (
+                    <tr key={index} className={index % 2 === 0 ? "bg-gray-50" : ""}>
+                      <td className="py-2 px-4 border-b border-gray-200 text-sm">{item.label}</td>
+                      <td className="py-2 px-4 border-b border-gray-200 text-right text-sm font-medium">
+                        {Math.ceil(item.units)} {result.unit}
+                      </td>
+                      <td className={`py-2 px-4 border-b border-gray-200 text-right text-sm font-medium ${
+                        item.change > 0 ? "text-red-600" : "text-green-600"
+                      }`}>
+                        {item.change > 0 ? "+" : ""}{item.change}%
                       </td>
                     </tr>
                   ))}
@@ -301,50 +423,16 @@ export default function PontoEquilibrioCalculator({
               </table>
             </div>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-              <h4 className="font-medium mb-2">Fórmulas Utilizadas:</h4>
-              <ul className="text-sm space-y-1">
-                <li>
-                  <span className="font-mono">Margem de Contribuição = Preço Unitário - Custo Variável Unitário</span>
-                </li>
-                <li>
-                  <span className="font-mono">
-                    Ponto de Equilíbrio (unidades) = Custos Fixos ÷ Margem de Contribuição
-                  </span>
-                </li>
-                <li>
-                  <span className="font-mono">
-                    Ponto de Equilíbrio (R$) = Ponto de Equilíbrio (unidades) × Preço Unitário
-                  </span>
-                </li>
-              </ul>
-            </div>
-
-            <div className="bg-yellow-50 p-4 rounded-md border border-yellow-100">
-              <h4 className="font-medium mb-2">Dicas para Reduzir o Ponto de Equilíbrio:</h4>
-              <ul className="text-sm space-y-1">
-                <li>• Reduzir custos fixos (renegociar aluguéis, otimizar processos, etc.)</li>
-                <li>• Aumentar o preço de venda (se o mercado permitir)</li>
-                <li>• Reduzir custos variáveis (negociar com fornecedores, otimizar produção)</li>
-                <li>• Melhorar o mix de produtos, priorizando itens com maior margem</li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="bg-blue-50 p-4 rounded-md border border-blue-100">
-            <p className="text-sm font-medium text-blue-800 mb-2">💡 Interpretação do Resultado</p>
-            <p className="text-sm text-blue-700 mb-2">
-              Seu negócio precisa vender <strong>{result.breakEvenUnits.toLocaleString()} unidades</strong> ou faturar{" "}
-              <strong>{formatCurrency(result.breakEvenRevenue)}</strong> para cobrir todos os custos e atingir o ponto
-              de equilíbrio.
-            </p>
-            <p className="text-sm text-blue-700">
-              Cada unidade vendida contribui com <strong>{formatCurrency(result.unitContributionMargin)}</strong> para
-              cobrir os custos fixos. Após atingir o ponto de equilíbrio, cada unidade adicional vendida gera este mesmo
-              valor em lucro.
-            </p>
+          
+          <div className="bg-amber-50 p-4 rounded-md border border-amber-100 text-sm">
+            <h4 className="font-medium mb-2 text-amber-800">Observações Importantes:</h4>
+            <ul className="list-disc pl-5 space-y-1">
+              <li>O ponto de equilíbrio representa o volume de vendas onde não há lucro nem prejuízo.</li>
+              <li>Abaixo do ponto de equilíbrio, a empresa opera com prejuízo.</li>
+              <li>Acima do ponto de equilíbrio, cada unidade adicional vendida contribui diretamente para o lucro.</li>
+              <li>Esta análise considera um volume de produção e vendas constante ao longo do tempo.</li>
+              <li>Diferentes produtos com diferentes margens requerem uma análise mais complexa.</li>
+            </ul>
           </div>
         </div>
       )}

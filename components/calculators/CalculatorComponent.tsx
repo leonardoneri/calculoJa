@@ -12,6 +12,9 @@ import PercentualGorduraCalculator from "./specific/PercentualGorduraCalculator"
 import AmortizacaoCalculator from "./specific/AmortizacaoCalculator"
 import RoiCalculator from "./specific/RoiCalculator"
 import ValorFuturoCalculator from "./specific/ValorFuturoCalculator"
+import ConversaoTemperaturaCalculator from "./specific/ConversaoTemperaturaCalculator"
+import IdadeCaesCalculator from "./specific/IdadeCaesCalculator"
+import PontoEquilibrioCalculator from "./specific/PontoEquilibrioCalculator"
 import CalculatorSkeleton from "./CalculatorSkeleton"
 
 interface CalculatorComponentProps {
@@ -51,6 +54,9 @@ export default function CalculatorComponent({ slug }: CalculatorComponentProps) 
     'amortizacao': AmortizacaoCalculator,
     'roi': RoiCalculator,
     'valor-futuro': ValorFuturoCalculator,
+    'conversao-temperatura': ConversaoTemperaturaCalculator,
+    'idade-caes': IdadeCaesCalculator,
+    'ponto-equilibrio': PontoEquilibrioCalculator,
   }
 
   const Component = calculatorMap[slug]

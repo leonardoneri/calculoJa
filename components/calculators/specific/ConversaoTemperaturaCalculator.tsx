@@ -9,10 +9,10 @@ interface ConversaoTemperaturaCalculatorProps {
   config: any
 }
 
-const temperaturaSchema = z.object({
+const temperatureSchema = z.object({
   temperature: z.number(),
-  fromUnit: z.enum(["celsius", "fahrenheit", "kelvin", "rankine", "reaumur"]),
-  toUnit: z.enum(["celsius", "fahrenheit", "kelvin", "rankine", "reaumur"]),
+  fromUnit: z.enum(["celsius", "fahrenheit", "kelvin"]),
+  toUnit: z.enum(["celsius", "fahrenheit", "kelvin"]),
 })
 
 export default function ConversaoTemperaturaCalculator({
@@ -21,8 +21,8 @@ export default function ConversaoTemperaturaCalculator({
   config,
 }: ConversaoTemperaturaCalculatorProps) {
   const [temperature, setTemperature] = useState<string>("")
-  const [fromUnit, setFromUnit] = useState<string>("celsius")
-  const [toUnit, setToUnit] = useState<string>("fahrenheit")
+  const [fromUnit, setFromUnit] = useState<"celsius" | "fahrenheit" | "kelvin">("celsius")
+  const [toUnit, setToUnit] = useState<"celsius" | "fahrenheit" | "kelvin">("fahrenheit")
   const [result, setResult] = useState<any>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -30,14 +30,26 @@ export default function ConversaoTemperaturaCalculator({
     try {
       const temperatureNum = Number.parseFloat(temperature)
 
-      temperaturaSchema.parse({
+      if (isNaN(temperatureNum)) {
+        setErrors({ temperature: "A temperatura deve ser um número válido" })
+        return null
+      }
+
+      if (fromUnit === toUnit) {
+        setErrors({ toUnit: "As unidades de origem e destino devem ser diferentes" })
+        return null
+      }
+
+      temperatureSchema.parse({
         temperature: temperatureNum,
         fromUnit,
         toUnit,
       })
 
       setErrors({})
-      return { temperatureNum }
+      return {
+        temperatureNum,
+      }
     } catch (error) {
       if (error instanceof z.ZodError) {
         const newErrors: Record<string, string> = {}
@@ -52,62 +64,55 @@ export default function ConversaoTemperaturaCalculator({
     }
   }
 
-  // Convert to Celsius first (as a common base)
-  const convertToCelsius = (temp: number, unit: string): number => {
-    switch (unit) {
-      case "celsius":
-        return temp
-      case "fahrenheit":
-        return (temp - 32) * (5 / 9)
-      case "kelvin":
-        return temp - 273.15
-      case "rankine":
-        return (temp - 491.67) * (5 / 9)
-      case "reaumur":
-        return temp * (5 / 4)
-      default:
-        return temp
-    }
-  }
-
-  // Convert from Celsius to target unit
-  const convertFromCelsius = (celsius: number, unit: string): number => {
-    switch (unit) {
-      case "celsius":
-        return celsius
-      case "fahrenheit":
-        return celsius * (9 / 5) + 32
-      case "kelvin":
-        return celsius + 273.15
-      case "rankine":
-        return celsius * (9 / 5) + 491.67
-      case "reaumur":
-        return celsius * (4 / 5)
-      default:
-        return celsius
-    }
-  }
-
-  const calculateConversion = () => {
+  const convertTemperature = () => {
     const validatedInput = validateInput()
     if (!validatedInput) return
 
     const { temperatureNum } = validatedInput
 
-    // Convert to Celsius first, then to target unit
-    const celsius = convertToCelsius(temperatureNum, fromUnit)
-    const convertedTemp = convertFromCelsius(celsius, toUnit)
+    // Converter para Kelvin (temperatura base para conversões)
+    let kelvinTemp = 0
+    switch (fromUnit) {
+      case "celsius":
+        kelvinTemp = temperatureNum + 273.15
+        break
+      case "fahrenheit":
+        kelvinTemp = ((temperatureNum - 32) * 5) / 9 + 273.15
+        break
+      case "kelvin":
+        kelvinTemp = temperatureNum
+        break
+    }
 
-    // Format to specified decimal places
+    // Converter de Kelvin para a unidade alvo
+    let convertedTemp = 0
+    switch (toUnit) {
+      case "celsius":
+        convertedTemp = kelvinTemp - 273.15
+        break
+      case "fahrenheit":
+        convertedTemp = ((kelvinTemp - 273.15) * 9) / 5 + 32
+        break
+      case "kelvin":
+        convertedTemp = kelvinTemp
+        break
+    }
+
+    // Criar dados adicionais para a temperatura
+    const temperatureInfo = getTemperatureInfo(convertedTemp, toUnit)
+
+    // Arredondar para o número de casas decimais configurado
     const decimalPlaces = config?.decimalPlaces || 2
-    const formattedResult = Number.parseFloat(convertedTemp.toFixed(decimalPlaces))
+    convertedTemp = Number(convertedTemp.toFixed(decimalPlaces))
 
     const calculationResult = {
       originalTemperature: temperatureNum,
-      originalUnit: fromUnit,
-      convertedTemperature: formattedResult,
-      convertedUnit: toUnit,
-      celsius: Number.parseFloat(celsius.toFixed(decimalPlaces)),
+      convertedTemperature: convertedTemp,
+      fromUnit,
+      toUnit,
+      kelvinValue: kelvinTemp,
+      temperatureInfo,
+      formula: getConversionFormula(fromUnit, toUnit),
     }
 
     setResult(calculationResult)
@@ -119,54 +124,132 @@ export default function ConversaoTemperaturaCalculator({
     onCalculate(calculationResult)
   }
 
-  // Calculate automatically when inputs change
+  // Dados informativos sobre a temperatura
+  const getTemperatureInfo = (temp: number, unit: string) => {
+    // Converter para celsius para comparação
+    let celsiusTemp = temp
+    if (unit === "fahrenheit") {
+      celsiusTemp = ((temp - 32) * 5) / 9
+    } else if (unit === "kelvin") {
+      celsiusTemp = temp - 273.15
+    }
+
+    let waterState = ""
+    if (celsiusTemp <= 0) {
+      waterState = "Congelado (abaixo de 0°C)"
+    } else if (celsiusTemp < 100) {
+      waterState = "Líquido (entre 0°C e 100°C)"
+    } else {
+      waterState = "Gasoso (acima de 100°C)"
+    }
+
+    let feeling = ""
+    if (celsiusTemp < 0) {
+      feeling = "Extremamente frio"
+    } else if (celsiusTemp < 10) {
+      feeling = "Muito frio"
+    } else if (celsiusTemp < 20) {
+      feeling = "Frio"
+    } else if (celsiusTemp < 25) {
+      feeling = "Agradável"
+    } else if (celsiusTemp < 30) {
+      feeling = "Quente"
+    } else if (celsiusTemp < 35) {
+      feeling = "Muito quente"
+    } else {
+      feeling = "Extremamente quente"
+    }
+
+    let examples = []
+    if (celsiusTemp <= -89.2) {
+      examples.push("Mais frio que o recorde de temperatura mais baixa na Terra (-89.2°C, Antártida)")
+    } else if (celsiusTemp <= -40) {
+      examples.push("Temperaturas extremas polares")
+    } else if (celsiusTemp <= -18) {
+      examples.push("Temperatura típica de freezers (-18°C)")
+    } else if (celsiusTemp <= 0) {
+      examples.push("Ponto de congelamento da água (0°C)")
+    } else if (celsiusTemp <= 10) {
+      examples.push("Temperatura de geladeira (2-8°C)")
+    } else if (celsiusTemp <= 20) {
+      examples.push("Temperatura ambiente fresca")
+    } else if (celsiusTemp <= 25) {
+      examples.push("Temperatura ambiente confortável")
+    } else if (celsiusTemp <= 30) {
+      examples.push("Dia quente de verão")
+    } else if (celsiusTemp <= 40) {
+      examples.push("Temperatura do deserto")
+    } else if (celsiusTemp <= 100) {
+      examples.push("Ponto de ebulição da água (100°C)")
+    } else if (celsiusTemp <= 200) {
+      examples.push("Temperatura típica de forno")
+    } else if (celsiusTemp <= 1000) {
+      examples.push("Temperaturas de fundição de metais")
+    } else {
+      examples.push("Temperaturas extremamente altas")
+    }
+
+    return {
+      waterState,
+      feeling,
+      examples,
+    }
+  }
+
+  // Obter fórmula de conversão para mostrar ao usuário
+  const getConversionFormula = (from: string, to: string) => {
+    const formulas: Record<string, Record<string, string>> = {
+      celsius: {
+        fahrenheit: "°F = °C × (9/5) + 32",
+        kelvin: "K = °C + 273.15",
+      },
+      fahrenheit: {
+        celsius: "°C = (°F - 32) × (5/9)",
+        kelvin: "K = (°F - 32) × (5/9) + 273.15",
+      },
+      kelvin: {
+        celsius: "°C = K - 273.15",
+        fahrenheit: "°F = (K - 273.15) × (9/5) + 32",
+      },
+    }
+
+    return formulas[from]?.[to] || ""
+  }
+
+  // Calculate automatically when all inputs are valid
   useEffect(() => {
-    if (temperature) {
+    if (temperature && fromUnit && toUnit && fromUnit !== toUnit) {
       const temperatureNum = Number.parseFloat(temperature)
 
       if (!isNaN(temperatureNum)) {
-        calculateConversion()
+        convertTemperature()
       }
     }
   }, [temperature, fromUnit, toUnit])
 
-  // Get unit symbol
-  const getUnitSymbol = (unit: string): string => {
-    switch (unit) {
-      case "celsius":
-        return "°C"
-      case "fahrenheit":
-        return "°F"
-      case "kelvin":
-        return "K"
-      case "rankine":
-        return "°R"
-      case "reaumur":
-        return "°Ré"
-      default:
-        return ""
+  // Formatação de temperatura com unidade
+  const formatTemperature = (value: number, unit: string) => {
+    const unitSymbols: Record<string, string> = {
+      celsius: "°C",
+      fahrenheit: "°F",
+      kelvin: "K",
     }
+
+    return `${value.toFixed(config?.decimalPlaces || 2)}${unitSymbols[unit] || ""}`
   }
 
-  // Get unit name
-  const getUnitName = (unit: string): string => {
-    switch (unit) {
-      case "celsius":
-        return "Celsius"
-      case "fahrenheit":
-        return "Fahrenheit"
-      case "kelvin":
-        return "Kelvin"
-      case "rankine":
-        return "Rankine"
-      case "reaumur":
-        return "Réaumur"
-      default:
-        return ""
+  // Nomes completos das unidades para exibição
+  const getUnitFullName = (unit: string) => {
+    const unitNames: Record<string, string> = {
+      celsius: "Celsius (°C)",
+      fahrenheit: "Fahrenheit (°F)",
+      kelvin: "Kelvin (K)",
     }
+
+    return unitNames[unit] || unit
   }
 
-  // Swap units
+  // Trocar unidades de origem e destino
   const swapUnits = () => {
     setFromUnit(toUnit)
     setToUnit(fromUnit)
@@ -175,152 +258,135 @@ export default function ConversaoTemperaturaCalculator({
   return (
     <div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div>
+        <div className="md:col-span-2">
           <label htmlFor="temperature" className="block text-sm font-medium text-gray-700 mb-1">
             Temperatura
           </label>
-          <input
-            id="temperature"
-            type="number"
-            value={temperature}
-            onChange={(e) => setTemperature(e.target.value)}
-            placeholder="Ex: 25"
-            className="calculator-input"
-            step="0.01"
-          />
+          <div className="flex">
+            <input
+              id="temperature"
+              type="number"
+              value={temperature}
+              onChange={(e) => setTemperature(e.target.value)}
+              placeholder="Ex: 25"
+              className="calculator-input rounded-r-none flex-grow"
+              step="0.01"
+            />
+            <select
+              value={fromUnit}
+              onChange={(e) => setFromUnit(e.target.value as "celsius" | "fahrenheit" | "kelvin")}
+              className="border border-l-0 border-gray-300 rounded-r-md p-2 bg-gray-50"
+            >
+              <option value="celsius">°C</option>
+              <option value="fahrenheit">°F</option>
+              <option value="kelvin">K</option>
+            </select>
+          </div>
           {errors.temperature && <p className="text-red-500 text-sm mt-1">{errors.temperature}</p>}
         </div>
 
-        <div>
-          <label htmlFor="fromUnit" className="block text-sm font-medium text-gray-700 mb-1">
-            De
-          </label>
-          <select
-            id="fromUnit"
-            value={fromUnit}
-            onChange={(e) => setFromUnit(e.target.value)}
-            className="calculator-input"
-          >
-            <option value="celsius">Celsius (°C)</option>
-            <option value="fahrenheit">Fahrenheit (°F)</option>
-            <option value="kelvin">Kelvin (K)</option>
-            <option value="rankine">Rankine (°R)</option>
-            <option value="reaumur">Réaumur (°Ré)</option>
-          </select>
-        </div>
-
-        <div className="flex justify-center items-center md:col-span-2">
+        <div className="md:col-span-2 flex justify-center items-center">
           <button
             onClick={swapUnits}
-            className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
-            aria-label="Trocar unidades"
+            className="rounded-full p-3 bg-gray-100 hover:bg-gray-200 transition-colors"
+            title="Trocar unidades"
           >
             <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
+              className="w-6 h-6 text-gray-600"
               fill="none"
               stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-gray-600"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <path d="M7 10v12" />
-              <path d="M15 10v12" />
-              <path d="M11 14v8" />
-              <path d="M11 2v8" />
-              <path d="m3 6 4 4 4-4" />
-              <path d="m17 6 4 4 4-4" />
-              <path d="m3 18 4-4 4 4" />
-              <path d="m17 18 4-4 4 4" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+              />
             </svg>
           </button>
         </div>
 
-        <div>
+        <div className="md:col-span-2">
           <label htmlFor="toUnit" className="block text-sm font-medium text-gray-700 mb-1">
-            Para
+            Converter para
           </label>
-          <select id="toUnit" value={toUnit} onChange={(e) => setToUnit(e.target.value)} className="calculator-input">
+          <select
+            id="toUnit"
+            value={toUnit}
+            onChange={(e) => setToUnit(e.target.value as "celsius" | "fahrenheit" | "kelvin")}
+            className="calculator-input"
+          >
             <option value="celsius">Celsius (°C)</option>
             <option value="fahrenheit">Fahrenheit (°F)</option>
             <option value="kelvin">Kelvin (K)</option>
-            <option value="rankine">Rankine (°R)</option>
-            <option value="reaumur">Réaumur (°Ré)</option>
           </select>
-        </div>
-
-        <div className="md:col-span-2">
-          <button onClick={calculateConversion} className="calculator-button w-full">
-            Converter Temperatura
-          </button>
+          {errors.toUnit && <p className="text-red-500 text-sm mt-1">{errors.toUnit}</p>}
         </div>
       </div>
+
+      <button onClick={convertTemperature} className="calculator-button">
+        Converter Temperatura
+      </button>
 
       {result && (
         <div className="calculator-result">
           <h3 className="text-lg font-semibold mb-4">Resultado:</h3>
 
-          <div className="bg-blue-50 p-6 rounded-md border border-blue-100 mb-6">
-            <div className="flex flex-col md:flex-row justify-between items-center">
-              <div className="text-center md:text-left mb-4 md:mb-0">
-                <p className="text-sm text-gray-600 mb-1">Temperatura Original</p>
-                <p className="text-3xl font-bold text-blue-700">
-                  {result.originalTemperature}
-                  <span className="text-xl ml-1">{getUnitSymbol(result.originalUnit)}</span>
-                </p>
-                <p className="text-sm text-gray-500 mt-1">{getUnitName(result.originalUnit)}</p>
-              </div>
+          <div className="flex flex-col items-center md:flex-row justify-center gap-8 mb-6">
+            <div className="text-center">
+              <div className="text-sm text-gray-500 mb-1">{getUnitFullName(result.fromUnit)}</div>
+              <div className="text-3xl font-bold">{formatTemperature(result.originalTemperature, result.fromUnit)}</div>
+            </div>
 
-              <div className="text-2xl text-gray-400 transform rotate-90 md:rotate-0 my-2 md:my-0">→</div>
+            <div className="text-3xl font-bold text-gray-400">=</div>
 
-              <div className="text-center md:text-right">
-                <p className="text-sm text-gray-600 mb-1">Temperatura Convertida</p>
-                <p className="text-3xl font-bold text-green-700">
-                  {result.convertedTemperature}
-                  <span className="text-xl ml-1">{getUnitSymbol(result.convertedUnit)}</span>
-                </p>
-                <p className="text-sm text-gray-500 mt-1">{getUnitName(result.convertedUnit)}</p>
+            <div className="text-center">
+              <div className="text-sm text-gray-500 mb-1">{getUnitFullName(result.toUnit)}</div>
+              <div className="text-4xl font-bold text-blue-600">
+                {formatTemperature(result.convertedTemperature, result.toUnit)}
               </div>
             </div>
           </div>
 
-          <div className="bg-gray-50 p-4 rounded-md border border-gray-200 mb-4">
-            <h4 className="font-medium mb-2">Detalhes da Conversão:</h4>
-            <ul className="text-sm space-y-1">
-              <li>
-                <span className="font-medium">Temperatura em Celsius:</span> {result.celsius} °C
-              </li>
-              <li>
-                <span className="font-medium">Fórmula utilizada:</span>{" "}
-                {fromUnit === toUnit
-                  ? "Mesma unidade, nenhuma conversão necessária"
-                  : `Primeiro convertido para Celsius, depois para ${getUnitName(toUnit)}`}
-              </li>
-            </ul>
+          <div className="mb-6 bg-blue-50 p-4 rounded-md border border-blue-100">
+            <h4 className="font-medium mb-2 text-blue-800">Fórmula de Conversão:</h4>
+            <p className="text-center text-lg font-mono">{result.formula}</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-yellow-50 p-4 rounded-md border border-yellow-100">
-              <h4 className="font-medium mb-2">Pontos de Referência:</h4>
-              <ul className="text-sm space-y-1">
-                <li>Congelamento da água: 0°C / 32°F / 273,15K</li>
-                <li>Temperatura ambiente: 20-25°C / 68-77°F</li>
-                <li>Ebulição da água: 100°C / 212°F / 373,15K</li>
-                <li>Temperatura corporal: ~37°C / ~98,6°F</li>
-              </ul>
-            </div>
-
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div className="bg-purple-50 p-4 rounded-md border border-purple-100">
-              <h4 className="font-medium mb-2">Curiosidades:</h4>
-              <ul className="text-sm space-y-1">
-                <li>-40°C é igual a -40°F (único ponto de coincidência)</li>
-                <li>0K (-273,15°C) é o zero absoluto teórico</li>
-                <li>A escala Kelvin não usa o símbolo de grau (°)</li>
-                <li>A escala Réaumur é raramente usada hoje em dia</li>
-              </ul>
+              <h4 className="font-medium mb-2 text-purple-800">Estado da Água:</h4>
+              <p>{result.temperatureInfo.waterState}</p>
+            </div>
+
+            <div className="bg-indigo-50 p-4 rounded-md border border-indigo-100">
+              <h4 className="font-medium mb-2 text-indigo-800">Sensação Térmica:</h4>
+              <p>{result.temperatureInfo.feeling}</p>
+            </div>
+
+            <div className="bg-green-50 p-4 rounded-md border border-green-100">
+              <h4 className="font-medium mb-2 text-green-800">Referência:</h4>
+              <p>{result.temperatureInfo.examples[0]}</p>
+            </div>
+          </div>
+
+          <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
+            <h4 className="font-medium mb-2">Valores em todas as unidades:</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+              <div>
+                <span className="font-medium">Celsius: </span>
+                {formatTemperature(result.kelvinValue - 273.15, "celsius")}
+              </div>
+              <div>
+                <span className="font-medium">Fahrenheit: </span>
+                {formatTemperature(((result.kelvinValue - 273.15) * 9) / 5 + 32, "fahrenheit")}
+              </div>
+              <div>
+                <span className="font-medium">Kelvin: </span>
+                {formatTemperature(result.kelvinValue, "kelvin")}
+              </div>
             </div>
           </div>
         </div>

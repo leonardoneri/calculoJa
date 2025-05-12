@@ -124,6 +124,34 @@
         "decimalPlaces": 2,
         "inflationAdjustment": true
       }
+    },
+    {
+      "id": "idade-caes",
+      "slug": "idade-caes",
+      "title": "Calculadora de Idade de Cães",
+      "description": "Converta a idade do seu cão para a idade humana equivalente com base no porte e raça.",
+      "category": "PETS",
+      "type": "idade-caes",
+      "icon": "🐕",
+      "keywords": ["cachorro", "idade", "pet", "cão", "anos", "equivalência", "estimativa"],
+      "config": {
+        "decimalPlaces": 0,
+        "useSizeAdjustment": true
+      }
+    },
+    {
+      "id": "ponto-equilibrio",
+      "slug": "ponto-equilibrio",
+      "title": "Calculadora de Ponto de Equilíbrio",
+      "description": "Calcule o ponto de equilíbrio financeiro do seu negócio - quando receitas igualam despesas.",
+      "category": "BUSINESS",
+      "type": "ponto-equilibrio",
+      "icon": "⚖️",
+      "keywords": ["ponto de equilíbrio", "break-even", "negócios", "lucro", "prejuízo", "gestão", "finanças"],
+      "config": {
+        "decimalPlaces": 2,
+        "showUnits": true
+      }
     }
   ]
 }

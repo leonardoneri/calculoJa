@@ -9,30 +9,39 @@ interface IdadeCaesCalculatorProps {
   config: any
 }
 
-const idadeCaesSchema = z.object({
-  dogAge: z.number().positive("A idade deve ser maior que zero").max(30, "A idade deve ser menor que 30"),
-  dogSize: z.enum(["small", "medium", "large", "giant"], {
-    errorMap: () => ({ message: "Selecione o porte do cão" }),
-  }),
+const dogAgeSchema = z.object({
+  actualAge: z.number().min(0.1, "A idade deve ser maior que 0"),
+  size: z.enum(["small", "medium", "large"]),
 })
 
-export default function IdadeCaesCalculator({ onInputChange, onCalculate, config }: IdadeCaesCalculatorProps) {
-  const [dogAge, setDogAge] = useState<string>("")
-  const [dogSize, setDogSize] = useState<string>("medium")
+export default function IdadeCaesCalculator({
+  onInputChange,
+  onCalculate,
+  config,
+}: IdadeCaesCalculatorProps) {
+  const [actualAge, setActualAge] = useState<string>("")
+  const [size, setSize] = useState<"small" | "medium" | "large">("medium")
   const [result, setResult] = useState<any>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const validateInput = () => {
     try {
-      const dogAgeNum = Number.parseFloat(dogAge)
+      const actualAgeNum = Number.parseFloat(actualAge)
 
-      idadeCaesSchema.parse({
-        dogAge: dogAgeNum,
-        dogSize,
+      if (isNaN(actualAgeNum)) {
+        setErrors({ actualAge: "A idade deve ser um número válido" })
+        return null
+      }
+
+      dogAgeSchema.parse({
+        actualAge: actualAgeNum,
+        size,
       })
 
       setErrors({})
-      return { dogAgeNum }
+      return {
+        actualAgeNum,
+      }
     } catch (error) {
       if (error instanceof z.ZodError) {
         const newErrors: Record<string, string> = {}
@@ -51,164 +60,187 @@ export default function IdadeCaesCalculator({ onInputChange, onCalculate, config
     const validatedInput = validateInput()
     if (!validatedInput) return
 
-    const { dogAgeNum } = validatedInput
+    const { actualAgeNum } = validatedInput
 
-    // Modern formula based on DNA methylation studies
-    // Base human age = 16 * ln(dog age) + 31
-    let humanAge = 16 * Math.log(dogAgeNum) + 31
-
-    // Adjust based on dog size
-    if (dogAgeNum > 1) {
-      switch (dogSize) {
-        case "small": // Small dogs age slower after the first year
-          humanAge = humanAge * 0.95
-          break
-        case "large": // Large dogs age faster after the first year
-          humanAge = humanAge * 1.1
-          break
-        case "giant": // Giant dogs age even faster
-          humanAge = humanAge * 1.15
-          break
-        default: // Medium dogs follow the standard formula
-          break
-      }
-    }
-
-    // Determine life stage
-    let lifeStage = ""
-    let description = ""
-
-    if (dogAgeNum < 1) {
-      lifeStage = "Filhote"
-      description = "Fase de crescimento rápido e socialização"
-    } else if (dogAgeNum < 3) {
-      lifeStage = "Jovem adulto"
-      description = "Cheio de energia, ainda em desenvolvimento mental"
-    } else if (dogAgeNum < 6) {
-      lifeStage = "Adulto"
-      description = "Fase de maturidade física e mental completa"
-    } else if (dogAgeNum < 10) {
-      lifeStage = "Adulto maduro"
-      description = "Início de alguns sinais de envelhecimento"
+    // Cálculo da idade humana baseado no método moderno 
+    // que considera desenvolvimento mais rápido nos primeiros anos e diferenças por porte
+    let humanAge = 0
+    
+    // Método mais preciso que o antigo "1 ano = 7 anos humanos"
+    if (actualAgeNum <= 1) {
+      // O primeiro ano de um cão equivale a aproximadamente 15 anos humanos
+      humanAge = 15 * actualAgeNum
+    } else if (actualAgeNum <= 2) {
+      // O segundo ano adiciona cerca de 9 anos humanos
+      humanAge = 15 + (actualAgeNum - 1) * 9
     } else {
-      lifeStage = "Sênior"
-      description = "Fase de envelhecimento, requer cuidados especiais"
-
-      // Adjust for giant breeds that reach senior stage earlier
-      if (dogSize === "giant" && dogAgeNum > 7) {
-        lifeStage = "Geriátrico"
-        description = "Fase avançada de envelhecimento, necessita atenção veterinária frequente"
-      } else if (dogSize === "large" && dogAgeNum > 11) {
-        lifeStage = "Geriátrico"
-        description = "Fase avançada de envelhecimento, necessita atenção veterinária frequente"
-      } else if (dogAgeNum > 14) {
-        lifeStage = "Geriátrico"
-        description = "Fase avançada de envelhecimento, necessita atenção veterinária frequente"
-      }
+      // Cada ano adicional varia conforme o porte do cão
+      const baseAge = 24; // 15 + 9 para os primeiros dois anos
+      const additionalYears = actualAgeNum - 2;
+      
+      // Fatores de multiplicação por porte após os 2 anos
+      const ageFactor = {
+        small: 4, // cães pequenos envelhecem mais lentamente
+        medium: 5, // porte médio é o padrão
+        large: 6, // cães grandes envelhecem mais rapidamente
+      };
+      
+      humanAge = baseAge + (additionalYears * ageFactor[size]);
     }
 
-    // Get life expectancy based on size
-    let lifeExpectancy = 0
-    switch (dogSize) {
-      case "small":
-        lifeExpectancy = 15
-        break
-      case "medium":
-        lifeExpectancy = 12
-        break
-      case "large":
-        lifeExpectancy = 10
-        break
-      case "giant":
-        lifeExpectancy = 8
-        break
-    }
+    // Arredondar para o número de casas decimais configurado (geralmente 0 para idades)
+    const decimalPlaces = config?.decimalPlaces !== undefined ? config.decimalPlaces : 0
+    humanAge = Number(humanAge.toFixed(decimalPlaces))
 
-    // Calculate percentage of life lived
-    const percentageLived = (dogAgeNum / lifeExpectancy) * 100
+    // Definir estágio de vida do cão
+    const lifeStage = getDogLifeStage(actualAgeNum, size)
+    
+    // Informações adicionais baseadas na idade
+    const ageInfo = getDogAgeInfo(actualAgeNum, humanAge, size)
 
     const calculationResult = {
-      dogAge: dogAgeNum,
-      dogSize,
-      humanAge: Number.parseFloat(humanAge.toFixed(config?.decimalPlaces || 1)),
+      dogAge: actualAgeNum,
+      humanAge,
+      size,
       lifeStage,
-      description,
-      lifeExpectancy,
-      percentageLived: Number.parseFloat(percentageLived.toFixed(1)),
+      ageInfo,
     }
 
     setResult(calculationResult)
 
     // Call parent callbacks
-    onInputChange("dogAge", dogAgeNum)
-    onInputChange("dogSize", dogSize)
+    onInputChange("actualAge", actualAgeNum)
+    onInputChange("size", size)
     onCalculate(calculationResult)
   }
 
-  // Calculate automatically when inputs change
-  useEffect(() => {
-    if (dogAge) {
-      const dogAgeNum = Number.parseFloat(dogAge)
+  // Determinar estágio de vida do cão
+  const getDogLifeStage = (dogAge: number, dogSize: string) => {
+    // Ajustes baseados no porte do cão
+    const ageFactors = {
+      small: { puppy: 1, adult: 7, senior: 12 },   // Cães pequenos vivem mais
+      medium: { puppy: 1, adult: 6, senior: 10 },  // Porte médio é o padrão
+      large: { puppy: 1, adult: 5, senior: 8 },    // Cães grandes têm vida útil menor
+    };
+    
+    // Corrigindo a desestruturação que estava causando o erro
+    const thresholds = ageFactors[dogSize as keyof typeof ageFactors];
+    
+    if (dogAge < thresholds.puppy) {
+      return "Filhote"
+    } else if (dogAge < thresholds.adult) {
+      return "Adulto"
+    } else if (dogAge < thresholds.senior) {
+      return "Adulto Maduro"
+    } else {
+      return "Idoso"
+    }
+  }
 
-      if (!isNaN(dogAgeNum) && dogAgeNum > 0 && dogAgeNum <= 30) {
+  // Obter informações baseadas na idade do cão
+  const getDogAgeInfo = (dogAge: number, humanAge: number, dogSize: string) => {
+    // Expectativa de vida aproximada por porte
+    const lifeExpectancy = {
+      small: 15,  // Cães pequenos podem viver 14-17 anos
+      medium: 13, // Cães médios vivem 12-14 anos em média
+      large: 10,  // Cães grandes geralmente vivem 8-12 anos
+    };
+    
+    // Percentual aproximado da vida percorrida
+    const lifePercentage = Math.min(100, Math.round((dogAge / lifeExpectancy[dogSize as keyof typeof lifeExpectancy]) * 100));
+    
+    // Recomendações gerais baseadas na idade
+    let healthTips = [];
+    
+    if (dogAge < 1) {
+      healthTips = [
+        "Vacinação completa é essencial",
+        "Socialização nos primeiros meses",
+        "Treinamento básico de obediência",
+        "Alimentação específica para filhotes"
+      ];
+    } else if (dogAge < 3) {
+      healthTips = [
+        "Castração/esterilização recomendada",
+        "Exercícios regulares para gastar energia",
+        "Cuidados dentais preventivos",
+        "Treinamento avançado de obediência"
+      ];
+    } else if (dogAge < 7) {
+      healthTips = [
+        "Check-up veterinário anual",
+        "Monitorar peso e dieta balanceada",
+        "Exercícios regulares para manter saúde",
+        "Atenção a problemas dentários"
+      ];
+    } else if (dogAge < 10) {
+      healthTips = [
+        "Check-ups veterinários semestrais",
+        "Ajuste da dieta para cães mais velhos",
+        "Exercícios moderados e regulares",
+        "Monitorar sinais de artrite e doenças relacionadas à idade"
+      ];
+    } else {
+      healthTips = [
+        "Check-ups veterinários a cada 3-4 meses",
+        "Dieta especializada para cães seniores",
+        "Exercícios leves e adaptados",
+        "Cuidados paliativos e conforto especial",
+        "Monitorar problemas de saúde relacionados à idade"
+      ];
+    }
+    
+    return {
+      lifeExpectancy: lifeExpectancy[dogSize as keyof typeof lifeExpectancy],
+      lifePercentage,
+      healthTips,
+    };
+  }
+
+  // Calculate automatically when all inputs are valid
+  useEffect(() => {
+    if (actualAge && size) {
+      const actualAgeNum = Number.parseFloat(actualAge)
+      if (!isNaN(actualAgeNum)) {
         calculateDogAge()
       }
     }
-  }, [dogAge, dogSize])
-
-  // Get dog size label
-  const getDogSizeLabel = (size: string): string => {
-    switch (size) {
-      case "small":
-        return "Pequeno (até 10kg)"
-      case "medium":
-        return "Médio (10-25kg)"
-      case "large":
-        return "Grande (25-45kg)"
-      case "giant":
-        return "Gigante (acima de 45kg)"
-      default:
-        return ""
-    }
-  }
+  }, [actualAge, size])
 
   return (
     <div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div>
-          <label htmlFor="dogAge" className="block text-sm font-medium text-gray-700 mb-1">
-            Idade do Cão (anos)
+          <label htmlFor="actualAge" className="block text-sm font-medium text-gray-700 mb-1">
+            Idade do Cão (em anos)
           </label>
           <input
-            id="dogAge"
+            id="actualAge"
             type="number"
-            value={dogAge}
-            onChange={(e) => setDogAge(e.target.value)}
-            placeholder="Ex: 5"
+            value={actualAge}
+            onChange={(e) => setActualAge(e.target.value)}
+            placeholder="Ex: 3.5"
             className="calculator-input"
-            min="0.1"
-            max="30"
             step="0.1"
+            min="0.1"
           />
-          {errors.dogAge && <p className="text-red-500 text-sm mt-1">{errors.dogAge}</p>}
+          {errors.actualAge && <p className="text-red-500 text-sm mt-1">{errors.actualAge}</p>}
         </div>
 
         <div>
-          <label htmlFor="dogSize" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="size" className="block text-sm font-medium text-gray-700 mb-1">
             Porte do Cão
           </label>
           <select
-            id="dogSize"
-            value={dogSize}
-            onChange={(e) => setDogSize(e.target.value)}
+            id="size"
+            value={size}
+            onChange={(e) => setSize(e.target.value as "small" | "medium" | "large")}
             className="calculator-input"
           >
             <option value="small">Pequeno (até 10kg)</option>
             <option value="medium">Médio (10-25kg)</option>
-            <option value="large">Grande (25-45kg)</option>
-            <option value="giant">Gigante (acima de 45kg)</option>
+            <option value="large">Grande (acima de 25kg)</option>
           </select>
-          {errors.dogSize && <p className="text-red-500 text-sm mt-1">{errors.dogSize}</p>}
         </div>
       </div>
 
@@ -220,108 +252,66 @@ export default function IdadeCaesCalculator({ onInputChange, onCalculate, config
         <div className="calculator-result">
           <h3 className="text-lg font-semibold mb-4">Resultado:</h3>
 
-          <div className="bg-blue-50 p-6 rounded-md border border-blue-100 mb-6">
-            <div className="flex flex-col md:flex-row justify-between items-center">
-              <div className="text-center md:text-left mb-4 md:mb-0">
-                <p className="text-sm text-gray-600 mb-1">Idade do Cão</p>
-                <p className="text-3xl font-bold text-blue-700">
-                  {result.dogAge} <span className="text-xl">anos</span>
-                </p>
-                <p className="text-sm text-gray-500 mt-1">{getDogSizeLabel(result.dogSize)}</p>
-              </div>
+          <div className="flex flex-col md:flex-row justify-center items-center gap-6 md:gap-16 mb-8">
+            <div className="text-center">
+              <div className="text-sm text-gray-500 mb-1">Idade Canina</div>
+              <div className="text-3xl font-bold">{result.dogAge} {result.dogAge === 1 ? "ano" : "anos"}</div>
+            </div>
 
-              <div className="text-2xl text-gray-400 transform rotate-90 md:rotate-0 my-2 md:my-0">≈</div>
-
-              <div className="text-center md:text-right">
-                <p className="text-sm text-gray-600 mb-1">Idade Humana Equivalente</p>
-                <p className="text-3xl font-bold text-green-700">
-                  {result.humanAge} <span className="text-xl">anos</span>
-                </p>
-                <p className="text-sm text-gray-500 mt-1">Baseado em estudos modernos</p>
+            <div className="text-center">
+              <div className="bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-2">
+                <span className="text-3xl">🐕</span>
               </div>
+              <div className="text-sm bg-blue-50 text-blue-800 font-medium py-1 px-4 rounded-full">
+                {result.lifeStage}
+              </div>
+            </div>
+
+            <div className="text-center">
+              <div className="text-sm text-gray-500 mb-1">Idade Humana Equivalente</div>
+              <div className="text-4xl font-bold text-blue-600">{result.humanAge} {result.humanAge === 1 ? "ano" : "anos"}</div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div className="bg-purple-50 p-4 rounded-md border border-purple-100">
-              <p className="text-sm text-gray-600 mb-1">Fase da Vida</p>
-              <p className="text-xl font-bold text-purple-700">{result.lifeStage}</p>
-              <p className="text-sm text-gray-600 mt-1">{result.description}</p>
-            </div>
-
-            <div className="bg-amber-50 p-4 rounded-md border border-amber-100">
-              <p className="text-sm text-gray-600 mb-1">Expectativa de Vida</p>
-              <div className="flex items-center">
-                <div className="flex-grow">
-                  <div className="h-4 bg-gray-200 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-amber-500 rounded-full"
-                      style={{ width: `${Math.min(result.percentageLived, 100)}%` }}
-                    ></div>
-                  </div>
-                </div>
-                <span className="ml-2 text-sm font-medium text-gray-600">{result.percentageLived}%</span>
-              </div>
-              <p className="text-sm text-gray-600 mt-2">
-                Expectativa média para porte {getDogSizeLabel(result.dogSize).toLowerCase()}: {result.lifeExpectancy}{" "}
-                anos
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="bg-blue-50 p-4 rounded-md border border-blue-100">
+              <h4 className="font-medium mb-3 text-blue-800">Sobre a Idade Canina</h4>
+              <p className="mb-2">Seu cão está na fase de <strong>{result.lifeStage}</strong>.</p>
+              <p className="mb-2">
+                Para cães de porte {result.size === 'small' ? 'pequeno' : result.size === 'medium' ? 'médio' : 'grande'}, 
+                a expectativa de vida média é de aproximadamente <strong>{result.ageInfo.lifeExpectancy} anos</strong>.
               </p>
+              <div className="mt-4">
+                <div className="flex justify-between text-sm mb-1">
+                  <span>Vida percorrida:</span>
+                  <span>{result.ageInfo.lifePercentage}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                  <div
+                    className="bg-blue-600 h-2.5 rounded-full"
+                    style={{ width: `${result.ageInfo.lifePercentage}%` }}
+                  ></div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
+              <h4 className="font-medium mb-3">Recomendações de Saúde</h4>
+              <ul className="list-disc pl-5 space-y-1 text-sm">
+                {result.ageInfo.healthTips.map((tip: string, index: number) => (
+                  <li key={index}>{tip}</li>
+                ))}
+              </ul>
             </div>
           </div>
-
-          <div className="bg-gray-50 p-4 rounded-md border border-gray-200 mb-4">
-            <h4 className="font-medium mb-2">Sobre o Cálculo:</h4>
-            <p className="text-sm text-gray-600 mb-2">
-              Esta calculadora usa uma fórmula moderna baseada em estudos de metilação do DNA canino, ajustada pelo
-              porte do animal. A fórmula base é:
+          
+          <div className="bg-amber-50 p-4 rounded-md border border-amber-100 text-sm">
+            <h4 className="font-medium mb-2 text-amber-800">Importante:</h4>
+            <p>
+              A conversão de idade de cães para idade humana é aproximada e varia conforme a raça e características individuais.
+              O método utilizado é mais preciso que o tradicional "1 ano de cão = 7 anos humanos", considerando
+              que cães amadurecem mais rapidamente nos primeiros anos e o envelhecimento varia conforme o porte.
             </p>
-            <p className="text-sm font-mono bg-gray-100 p-2 rounded mb-2">Idade humana = 16 × ln(idade do cão) + 31</p>
-            <p className="text-sm text-gray-600">
-              Onde "ln" é o logaritmo natural. Ajustes adicionais são feitos com base no porte do cão, já que cães
-              menores tendem a viver mais e envelhecer mais lentamente que cães maiores.
-            </p>
-          </div>
-
-          <div className="bg-yellow-50 p-4 rounded-md border border-yellow-100">
-            <p className="text-sm font-medium text-yellow-800 mb-2">⚠️ Dicas de Cuidados</p>
-            <ul className="text-sm text-yellow-700 list-disc pl-5 space-y-1">
-              {result.lifeStage === "Filhote" && (
-                <>
-                  <li>Vacinação completa e vermifugação são essenciais</li>
-                  <li>Socialização com outros cães e pessoas é crucial nesta fase</li>
-                  <li>Alimentação específica para filhotes do porte do seu cão</li>
-                </>
-              )}
-              {result.lifeStage === "Jovem adulto" && (
-                <>
-                  <li>Exercícios regulares para gastar energia</li>
-                  <li>Treinamento de obediência básica</li>
-                  <li>Verificar necessidade de castração/esterilização</li>
-                </>
-              )}
-              {result.lifeStage === "Adulto" && (
-                <>
-                  <li>Check-up veterinário anual</li>
-                  <li>Manter peso ideal e exercícios regulares</li>
-                  <li>Cuidados dentários preventivos</li>
-                </>
-              )}
-              {result.lifeStage === "Adulto maduro" && (
-                <>
-                  <li>Atenção a mudanças comportamentais</li>
-                  <li>Ajustar alimentação para metabolismo mais lento</li>
-                  <li>Check-ups veterinários a cada 6-12 meses</li>
-                </>
-              )}
-              {(result.lifeStage === "Sênior" || result.lifeStage === "Geriátrico") && (
-                <>
-                  <li>Check-ups veterinários a cada 6 meses</li>
-                  <li>Exames de sangue regulares para monitorar saúde</li>
-                  <li>Adaptar exercícios para menor impacto nas articulações</li>
-                  <li>Atenção especial à alimentação, hidratação e conforto</li>
-                </>
-              )}
-            </ul>
           </div>
         </div>
       )}
