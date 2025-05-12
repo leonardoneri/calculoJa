@@ -334,6 +334,32 @@
       "config": {
         "decimalPlaces": 1
       }
+    },
+    {
+      "id": "turnover",
+      "slug": "turnover",
+      "title": "Calculadora de Turnover",
+      "description": "Calcule a taxa de rotatividade de funcionários da sua empresa e descubra como está o seu índice comparado ao mercado.",
+      "category": "BUSINESS",
+      "type": "turnover",
+      "icon": "🔄",
+      "keywords": ["turnover", "rotatividade", "recursos humanos", "RH", "funcionários", "demissão", "desligamento", "retenção de talentos", "gestão de pessoas"],
+      "config": {
+        "decimalPlaces": 2
+      }
+    },
+    {
+      "id": "absenteismo",
+      "slug": "absenteismo",
+      "title": "Calculadora de Absenteísmo",
+      "description": "Calcule a taxa de ausência de funcionários da sua empresa e avalie o impacto na produtividade e nos custos.",
+      "category": "BUSINESS",
+      "type": "absenteismo",
+      "icon": "📆",
+      "keywords": ["absenteísmo", "ausência", "faltas", "recursos humanos", "RH", "produtividade", "gestão de pessoas", "licenças"],
+      "config": {
+        "decimalPlaces": 2
+      }
     }
   ]
 }

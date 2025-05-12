@@ -29,6 +29,8 @@ import PISPASEPCalculator from "./specific/PISPASEPCalculator"
 import ContribuicaoINSSCalculator from "./specific/ContribuicaoINSSCalculator"
 import NecessidadeAguaCalculator from "./specific/NecessidadeAguaCalculator"
 import SonoIdealCalculator from "./specific/SonoIdealCalculator"
+import TurnoverCalculator from "./specific/TurnoverCalculator"
+import AbsenteismoCalculator from "./specific/AbsenteismoCalculator"
 import CalculatorSkeleton from "./CalculatorSkeleton"
 
 interface CalculatorComponentProps {
@@ -85,6 +87,8 @@ export default function CalculatorComponent({ slug }: CalculatorComponentProps) 
     'contribuicao-inss': ContribuicaoINSSCalculator,
     'necessidade-agua': NecessidadeAguaCalculator,
     'sono-ideal': SonoIdealCalculator,
+    'turnover': TurnoverCalculator,
+    'absenteismo': AbsenteismoCalculator
   }
 
   const Component = calculatorMap[slug]

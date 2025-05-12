@@ -16,7 +16,7 @@ export default async function RecursosHumanosPage() {
     calc.category === CalculatorCategory.BUSINESS && 
     ["rescisao", "decimo-terceiro", "ferias", "horas-extras", "seguro-desemprego", 
      "aposentadoria", "ir-fonte", "adicional-noturno", "vale-transporte", "pis-pasep", 
-     "contribuicao-inss"].includes(calc.slug)
+     "contribuicao-inss", "turnover", "absenteismo"].includes(calc.slug)
   )
 
   return (

@@ -16,7 +16,7 @@ export default async function Home() {
   // Lista de slugs específicos para cada categoria temática
   const hrSlugs = ["rescisao", "decimo-terceiro", "ferias", "horas-extras", "seguro-desemprego", 
                   "aposentadoria", "ir-fonte", "adicional-noturno", "vale-transporte", "pis-pasep", 
-                  "contribuicao-inss"];
+                  "contribuicao-inss", "turnover", "absenteismo"];
                   
   const loanSlugs = ["emprestimo-consignado", "amortizacao", "juros-compostos", "valor-futuro"];
   

@@ -14,7 +14,7 @@ export default async function BusinessCategoryPage() {
   // Lista de slugs a excluir (já estão em outras categorias)
   const hrSlugs = ["rescisao", "decimo-terceiro", "ferias", "horas-extras", "seguro-desemprego", 
                    "aposentadoria", "ir-fonte", "adicional-noturno", "vale-transporte", "pis-pasep", 
-                   "contribuicao-inss"];
+                   "contribuicao-inss", "turnover", "absenteismo"];
   
   const loanSlugs = ["emprestimo-consignado"];
   
