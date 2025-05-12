@@ -18,10 +18,8 @@ const nextConfig = {
   experimental: {
     mdxRs: false,
     optimizeCss: true,
-    optimizeServerReact: true,
     scrollRestoration: true,
   },
-  swcMinify: true,
   compress: true,
   poweredByHeader: false,
   async rewrites() {
