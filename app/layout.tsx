@@ -7,6 +7,7 @@ import Footer from "@/components/layout/Footer"
 import { Analytics } from "@/components/Analytics"
 import { Providers } from "@/components/Providers"
 import { Suspense } from "react"
+import Script from "next/script"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -27,6 +28,12 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/calculoja-icon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/calculoja-icon.svg" />
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2877556290224566"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
       </head>
       <body className={inter.className} suppressHydrationWarning>
         <Providers>
