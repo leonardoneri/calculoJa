@@ -152,6 +152,32 @@
         "decimalPlaces": 2,
         "showUnits": true
       }
+    },
+    {
+      "id": "rescisao",
+      "slug": "rescisao",
+      "title": "Calculadora de Rescisão Trabalhista",
+      "description": "Calcule os valores de rescisão de contrato de trabalho conforme as regras da CLT.",
+      "category": "BUSINESS",
+      "type": "rescisao",
+      "icon": "📝",
+      "keywords": ["rescisão", "contrato", "trabalho", "clt", "demissão", "aviso prévio", "férias", "fgts", "verbas rescisórias"],
+      "config": {
+        "decimalPlaces": 2
+      }
+    },
+    {
+      "id": "decimo-terceiro",
+      "slug": "decimo-terceiro",
+      "title": "Calculadora de 13º Salário",
+      "description": "Calcule o valor do seu décimo terceiro salário, considerando os descontos de INSS e Imposto de Renda.",
+      "category": "BUSINESS",
+      "type": "decimo-terceiro",
+      "icon": "💼",
+      "keywords": ["décimo terceiro", "13º salário", "gratificação natalina", "clt", "inss", "imposto de renda", "folha de pagamento"],
+      "config": {
+        "decimalPlaces": 2
+      }
     }
   ]
 }

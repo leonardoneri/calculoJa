@@ -15,6 +15,8 @@ import ValorFuturoCalculator from "./specific/ValorFuturoCalculator"
 import ConversaoTemperaturaCalculator from "./specific/ConversaoTemperaturaCalculator"
 import IdadeCaesCalculator from "./specific/IdadeCaesCalculator"
 import PontoEquilibrioCalculator from "./specific/PontoEquilibrioCalculator"
+import RescisaoCalculator from "./specific/RescisaoCalculator"
+import DecimoTerceiroCalculator from "./specific/DecimoTerceiroCalculator"
 import CalculatorSkeleton from "./CalculatorSkeleton"
 
 interface CalculatorComponentProps {
@@ -57,6 +59,8 @@ export default function CalculatorComponent({ slug }: CalculatorComponentProps) 
     'conversao-temperatura': ConversaoTemperaturaCalculator,
     'idade-caes': IdadeCaesCalculator,
     'ponto-equilibrio': PontoEquilibrioCalculator,
+    'rescisao': RescisaoCalculator,
+    'decimo-terceiro': DecimoTerceiroCalculator,
   }
 
   const Component = calculatorMap[slug]
