@@ -36,7 +36,7 @@ export default async function HealthCategoryPage() {
       title: "Nutrição e Alimentação",
       description: "Calcule suas necessidades nutricionais e gasto calórico",
       calculators: healthCalculators.filter(calc => 
-        ["calorias-diarias"].includes(calc.slug)
+        ["calorias-diarias", "necessidade-agua"].includes(calc.slug)
       )
     }
   ]

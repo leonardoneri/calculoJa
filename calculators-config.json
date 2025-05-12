@@ -308,6 +308,19 @@
       "config": {
         "decimalPlaces": 2
       }
+    },
+    {
+      "id": "necessidade-agua",
+      "slug": "necessidade-agua",
+      "title": "Calculadora de Necessidade Diária de Água",
+      "description": "Calcule quanto de água você deve beber por dia com base no seu peso, idade, gênero, nível de atividade física e clima.",
+      "category": "HEALTH",
+      "type": "necessidade-agua",
+      "icon": "💧",
+      "keywords": ["água", "hidratação", "necessidade hídrica", "beber água", "saúde", "bem-estar", "consumo de água", "água diária"],
+      "config": {
+        "decimalPlaces": 2
+      }
     }
   ]
 }

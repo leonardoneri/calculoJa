@@ -27,6 +27,7 @@ import ValeTransporteCalculator from "./specific/ValeTransporteCalculator"
 import EmprestimoConsignadoCalculator from "./specific/EmprestimoConsignadoCalculator"
 import PISPASEPCalculator from "./specific/PISPASEPCalculator"
 import ContribuicaoINSSCalculator from "./specific/ContribuicaoINSSCalculator"
+import NecessidadeAguaCalculator from "./specific/NecessidadeAguaCalculator"
 import CalculatorSkeleton from "./CalculatorSkeleton"
 
 interface CalculatorComponentProps {
@@ -81,6 +82,7 @@ export default function CalculatorComponent({ slug }: CalculatorComponentProps) 
     'emprestimo-consignado': EmprestimoConsignadoCalculator,
     'pis-pasep': PISPASEPCalculator,
     'contribuicao-inss': ContribuicaoINSSCalculator,
+    'necessidade-agua': NecessidadeAguaCalculator,
   }
 
   const Component = calculatorMap[slug]
