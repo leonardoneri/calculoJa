@@ -475,27 +475,33 @@ export default function AbsenteismoCalculator({
                 <AccordionContent>
                   <div className="space-y-2 text-sm text-gray-600">
                     {resultado.taxaAbsenteismo < 2 ? (
-                      <p>
-                        Com um absenteísmo baixo, sua empresa demonstra boa gestão das ausências.
-                        Continue com as práticas atuais e considere:
+                      <>
+                        <p>
+                          Com um absenteísmo baixo, sua empresa demonstra boa gestão das ausências.
+                          Continue com as práticas atuais e considere:
+                        </p>
                         <ul className="list-disc pl-5 mt-2 space-y-1">
                           <li>Manter o monitoramento regular das ausências</li>
                           <li>Reconhecer os bons índices com a equipe</li>
                           <li>Documentar as boas práticas que contribuem para este resultado</li>
                         </ul>
-                      </p>
+                      </>
                     ) : resultado.taxaAbsenteismo < 4 ? (
-                      <p>
-                        Seu absenteísmo está em níveis aceitáveis, mas considere:
+                      <>
+                        <p>
+                          Seu absenteísmo está em níveis aceitáveis, mas considere:
+                        </p>
                         <ul className="list-disc pl-5 mt-2 space-y-1">
                           <li>Analisar os padrões de ausência (dias da semana, períodos do ano)</li>
                           <li>Implementar entrevistas de retorno ao trabalho</li>
                           <li>Revisar políticas de saúde e bem-estar</li>
                         </ul>
-                      </p>
+                      </>
                     ) : resultado.taxaAbsenteismo < 6 ? (
-                      <p>
-                        Com um absenteísmo elevado, recomenda-se:
+                      <>
+                        <p>
+                          Com um absenteísmo elevado, recomenda-se:
+                        </p>
                         <ul className="list-disc pl-5 mt-2 space-y-1">
                           <li>Identificar as causas mais comuns de ausências</li>
                           <li>Segmentar o absenteísmo por departamento para ações focadas</li>
@@ -503,10 +509,12 @@ export default function AbsenteismoCalculator({
                           <li>Implementar programas de qualidade de vida</li>
                           <li>Analisar a carga e condições de trabalho</li>
                         </ul>
-                      </p>
+                      </>
                     ) : (
-                      <p>
-                        Seu absenteísmo está em níveis críticos, exigindo ações imediatas:
+                      <>
+                        <p>
+                          Seu absenteísmo está em níveis críticos, exigindo ações imediatas:
+                        </p>
                         <ul className="list-disc pl-5 mt-2 space-y-1">
                           <li>Realizar análise detalhada dos tipos de ausência (médicas, injustificadas, etc.)</li>
                           <li>Auditar processos de gestão de ausências</li>
@@ -515,7 +523,7 @@ export default function AbsenteismoCalculator({
                           <li>Analisar fatores de clima organizacional e estresse</li>
                           <li>Considerar consultoria especializada em saúde ocupacional</li>
                         </ul>
-                      </p>
+                      </>
                     )}
                   </div>
                 </AccordionContent>
