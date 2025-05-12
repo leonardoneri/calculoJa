@@ -1,0 +1,73 @@
+{
+  "calculators": [
+    {
+      "id": "imc",
+      "slug": "imc",
+      "title": "Calculadora de IMC",
+      "description": "Calcule seu Índice de Massa Corporal (IMC) e descubra se seu peso está adequado para sua altura.",
+      "category": "HEALTH",
+      "type": "imc",
+      "icon": "⚖️",
+      "keywords": ["imc", "índice de massa corporal", "peso", "altura", "obesidade", "saúde"],
+      "config": {
+        "decimalPlaces": 2
+      }
+    },
+    {
+      "id": "juros-compostos",
+      "slug": "juros-compostos",
+      "title": "Calculadora de Juros Compostos",
+      "description": "Calcule o rendimento de seus investimentos com juros compostos ao longo do tempo.",
+      "category": "FINANCE",
+      "type": "juros-compostos",
+      "icon": "💰",
+      "keywords": ["juros compostos", "investimentos", "rendimento", "finanças", "poupança", "capitalização"],
+      "config": {
+        "decimalPlaces": 2,
+        "allowMonthlyContribution": true
+      }
+    },
+    {
+      "id": "conversao-moedas",
+      "slug": "conversao-moedas",
+      "title": "Conversor de Moedas",
+      "description": "Converta valores entre diferentes moedas com taxas de câmbio atualizadas.",
+      "category": "CONVERSION",
+      "type": "conversao-moedas",
+      "icon": "💱",
+      "keywords": ["câmbio", "moeda", "dólar", "euro", "conversão", "internacional"],
+      "config": {
+        "updateFrequency": "daily",
+        "decimalPlaces": 2
+      }
+    },
+    {
+      "id": "dosagem-veterinaria",
+      "slug": "dosagem-veterinaria",
+      "title": "Calculadora de Dosagem Veterinária",
+      "description": "Calcule a dosagem correta de medicamentos para animais com base no peso.",
+      "category": "VETERINARY",
+      "type": "dosagem-veterinaria",
+      "icon": "🐾",
+      "keywords": ["veterinária", "dosagem", "medicamento", "pet", "animal", "peso"],
+      "config": {
+        "decimalPlaces": 2,
+        "defaultUnit": "mg/kg"
+      }
+    },
+    {
+      "id": "markup",
+      "slug": "markup",
+      "title": "Calculadora de Markup",
+      "description": "Calcule o preço de venda ideal para seus produtos com base no custo e margem desejada.",
+      "category": "BUSINESS",
+      "type": "markup",
+      "icon": "📊",
+      "keywords": ["markup", "preço", "margem", "lucro", "custo", "venda", "negócios"],
+      "config": {
+        "decimalPlaces": 2,
+        "includesTax": true
+      }
+    }
+  ]
+}
