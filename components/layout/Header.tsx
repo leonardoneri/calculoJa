@@ -57,16 +57,22 @@ export default function Header() {
               Finanças
             </Link>
             <Link
+              href="/recursos-humanos"
+              className={`hover:text-blue-600 ${pathname.includes("recursos-humanos") ? "text-blue-600 font-medium" : "text-gray-600"}`}
+            >
+              RH
+            </Link>
+            <Link
+              href="/emprestimos-financiamentos"
+              className={`hover:text-blue-600 ${pathname.includes("emprestimos-financiamentos") ? "text-blue-600 font-medium" : "text-gray-600"}`}
+            >
+              Empréstimos
+            </Link>
+            <Link
               href={`/categoria/${CalculatorCategory.CONVERSION.toLowerCase()}`}
               className={`hover:text-blue-600 ${pathname.includes(CalculatorCategory.CONVERSION.toLowerCase()) ? "text-blue-600 font-medium" : "text-gray-600"}`}
             >
               Conversão
-            </Link>
-            <Link
-              href={`/categoria/${CalculatorCategory.VETERINARY.toLowerCase()}`}
-              className={`hover:text-blue-600 ${pathname.includes(CalculatorCategory.VETERINARY.toLowerCase()) ? "text-blue-600 font-medium" : "text-gray-600"}`}
-            >
-              Veterinária
             </Link>
             <Link
               href={`/categoria/${CalculatorCategory.BUSINESS.toLowerCase()}`}
@@ -123,18 +129,25 @@ export default function Header() {
                 Finanças
               </Link>
               <Link
+                href="/recursos-humanos"
+                className={`hover:text-blue-600 ${pathname.includes("recursos-humanos") ? "text-blue-600 font-medium" : "text-gray-600"}`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Recursos Humanos
+              </Link>
+              <Link
+                href="/emprestimos-financiamentos"
+                className={`hover:text-blue-600 ${pathname.includes("emprestimos-financiamentos") ? "text-blue-600 font-medium" : "text-gray-600"}`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Empréstimos
+              </Link>
+              <Link
                 href={`/categoria/${CalculatorCategory.CONVERSION.toLowerCase()}`}
                 className={`hover:text-blue-600 ${pathname.includes(CalculatorCategory.CONVERSION.toLowerCase()) ? "text-blue-600 font-medium" : "text-gray-600"}`}
                 onClick={() => setIsMenuOpen(false)}
               >
                 Conversão
-              </Link>
-              <Link
-                href={`/categoria/${CalculatorCategory.VETERINARY.toLowerCase()}`}
-                className={`hover:text-blue-600 ${pathname.includes(CalculatorCategory.VETERINARY.toLowerCase()) ? "text-blue-600 font-medium" : "text-gray-600"}`}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Veterinária
               </Link>
               <Link
                 href={`/categoria/${CalculatorCategory.BUSINESS.toLowerCase()}`}

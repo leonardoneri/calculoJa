@@ -4,33 +4,25 @@ import { getAllCalculators } from "@/lib/calculators"
 import { CalculatorCategory } from "@/lib/types"
 
 export const metadata: Metadata = {
-  title: "Calculadoras de Negócios - CálculoJá",
-  description: "Ferramentas especializadas para análise e gestão de negócios, cálculos de margem, lucro e muito mais.",
+  title: "Empréstimos e Financiamentos - CálculoJá",
+  description: "Calcule prestações, juros e amortizações de empréstimos e financiamentos com nossas calculadoras especializadas.",
 }
 
-export default async function BusinessCategoryPage() {
+export default async function EmprestimosFinanciamentosPage() {
   const allCalculators = await getAllCalculators()
   
-  // Lista de slugs a excluir (já estão em outras categorias)
-  const hrSlugs = ["rescisao", "decimo-terceiro", "ferias", "horas-extras", "seguro-desemprego", 
-                   "aposentadoria", "ir-fonte", "adicional-noturno", "vale-transporte", "pis-pasep", 
-                   "contribuicao-inss"];
-  
-  const loanSlugs = ["emprestimo-consignado"];
-  
-  // Filtrar calculadoras de negócios, excluindo as que já estão em outras categorias
+  // Filtrar calculadoras de empréstimos e financiamentos
   const calculators = allCalculators.filter(calc => 
-    calc.category === CalculatorCategory.BUSINESS && 
-    !hrSlugs.includes(calc.slug) &&
-    !loanSlugs.includes(calc.slug)
-  );
+    (calc.category === CalculatorCategory.FINANCE || calc.category === CalculatorCategory.BUSINESS) && 
+    ["emprestimo-consignado", "amortizacao", "juros-compostos", "valor-futuro"].includes(calc.slug)
+  )
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-12">
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold mb-4">Calculadoras de Negócios</h1>
+        <h1 className="text-4xl font-bold mb-4">Empréstimos e Financiamentos</h1>
         <p className="text-lg text-gray-600">
-          Otimize sua gestão empresarial com ferramentas para análise de custos, preços e lucratividade.
+          Calcule prestações, juros e amortizações de empréstimos e financiamentos com nossas calculadoras especializadas.
         </p>
       </div>
 
@@ -38,7 +30,7 @@ export default async function BusinessCategoryPage() {
         <div className="text-center py-8 bg-yellow-50 rounded-lg border border-yellow-100">
           <h2 className="text-xl font-semibold text-yellow-700 mb-2">Estamos trabalhando nisso!</h2>
           <p className="text-gray-700 mb-4">
-            Ainda não temos calculadoras disponíveis nesta categoria, mas estamos desenvolvendo novas ferramentas para gestão de negócios para você!
+            Ainda não temos calculadoras disponíveis nesta categoria, mas estamos desenvolvendo novas ferramentas para você!
           </p>
           <Link href="/" className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg">
             Voltar para a página inicial

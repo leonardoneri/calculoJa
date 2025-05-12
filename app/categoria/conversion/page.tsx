@@ -4,7 +4,7 @@ import { getCalculatorsByCategory } from "@/lib/calculators"
 import { CalculatorCategory } from "@/lib/types"
 
 export const metadata: Metadata = {
-  title: "Calculadoras de Conversão - Calculadoras Especializadas",
+  title: "Calculadoras de Conversão - CálculoJá",
   description: "Ferramentas especializadas para conversão de unidades, moedas e outros valores.",
 }
 
@@ -74,6 +74,25 @@ export default async function ConversionCategoryPage() {
           ))}
         </div>
       )}
+      
+      {/* CTA para explorar outras categorias */}
+      <div className="mt-16 bg-gray-50 rounded-lg p-8 text-center">
+        <h2 className="text-2xl font-bold mb-4">Explore outras categorias de calculadoras</h2>
+        <p className="text-gray-600 mb-6">
+          Além das calculadoras de conversão, oferecemos ferramentas para finanças, recursos humanos e muito mais.
+        </p>
+        <div className="flex flex-wrap justify-center gap-4">
+          <Link href="/categoria/finance" className="bg-white border border-gray-200 rounded-lg px-6 py-3 hover:bg-gray-100 transition">
+            Finanças
+          </Link>
+          <Link href="/recursos-humanos" className="bg-white border border-gray-200 rounded-lg px-6 py-3 hover:bg-gray-100 transition">
+            Recursos Humanos
+          </Link>
+          <Link href="/emprestimos-financiamentos" className="bg-white border border-gray-200 rounded-lg px-6 py-3 hover:bg-gray-100 transition">
+            Empréstimos
+          </Link>
+        </div>
+      </div>
     </div>
   )
 } 

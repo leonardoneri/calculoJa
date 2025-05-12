@@ -1,17 +1,26 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { CalculatorCategory } from "@/lib/types"
-import { getCalculatorsByCategory } from "@/lib/calculators"
+import { getAllCalculators } from "@/lib/calculators"
 
 export const metadata: Metadata = {
-  title: "Calculadoras Financeiras - Ferramentas para planejamento financeiro",
+  title: "Calculadoras Financeiras - CálculoJá",
   description: "Planeje suas finanças pessoais e investimentos com nossas calculadoras especializadas, como juros compostos, amortização e markup.",
   keywords: "finanças, calculadoras financeiras, juros compostos, amortização, markup, investimentos"
 }
 
 export default async function FinanceCategoryPage() {
-  // Obtém todas as calculadoras da categoria FINANCE
-  const financeCalculators = await getCalculatorsByCategory(CalculatorCategory.FINANCE)
+  // Obtém todas as calculadoras
+  const allCalculators = await getAllCalculators()
+  
+  // Lista de slugs que devem estar na página de empréstimos e financiamentos
+  const loanSlugs = ["emprestimo-consignado", "amortizacao", "juros-compostos", "valor-futuro"];
+  
+  // Filtramos apenas as calculadoras FINANCE, excluindo as que estão em Empréstimos e Financiamentos
+  const financeCalculators = allCalculators.filter(calc => 
+    calc.category === CalculatorCategory.FINANCE && 
+    !loanSlugs.includes(calc.slug)
+  );
 
   // Grupos para organizar as calculadoras por finalidade
   const groups = [
@@ -19,24 +28,19 @@ export default async function FinanceCategoryPage() {
       id: "investments",
       title: "Investimentos",
       description: "Planeje seus investimentos e calcule rendimentos ao longo do tempo",
-      calculators: financeCalculators.filter(calc => 
-        ["juros-compostos"].includes(calc.slug)
+      calculators: allCalculators.filter(calc => 
+        calc.category === CalculatorCategory.FINANCE && 
+        ["roi"].includes(calc.slug)
       )
     },
     {
       id: "business",
       title: "Negócios",
       description: "Ferramentas para cálculos empresariais e precificação",
-      calculators: financeCalculators.filter(calc => 
-        ["markup", "ponto-equilibrio"].includes(calc.slug)
-      )
-    },
-    {
-      id: "loans",
-      title: "Empréstimos e Financiamentos",
-      description: "Calcule prestações, juros e amortizações de empréstimos",
-      calculators: financeCalculators.filter(calc => 
-        ["amortizacao"].includes(calc.slug)
+      calculators: allCalculators.filter(calc => 
+        calc.category === CalculatorCategory.FINANCE && 
+        !loanSlugs.includes(calc.slug) &&
+        !["roi"].includes(calc.slug)
       )
     }
   ]
@@ -47,7 +51,7 @@ export default async function FinanceCategoryPage() {
         <h1 className="text-4xl font-bold mb-4">Calculadoras Financeiras</h1>
         <p className="text-lg text-gray-600 max-w-3xl mx-auto">
           Ferramentas financeiras poderosas para ajudar você a tomar decisões 
-          informadas sobre investimentos, empréstimos e planejamento financeiro pessoal.
+          informadas sobre investimentos, planejamento financeiro pessoal e muito mais.
         </p>
       </header>
 
@@ -58,7 +62,7 @@ export default async function FinanceCategoryPage() {
             <h2 className="text-2xl font-bold mb-3">Planeje seu futuro financeiro</h2>
             <p className="text-gray-700">
               Nossas calculadoras financeiras são projetadas para ajudar você a 
-              planejar investimentos, calcular juros, amortizações e tomar decisões 
+              planejar investimentos, calcular ROI e tomar decisões 
               financeiras inteligentes.
             </p>
           </div>
@@ -109,6 +113,18 @@ export default async function FinanceCategoryPage() {
         ))}
       </div>
 
+      {/* Sugestão de calculadoras de empréstimos e financiamentos */}
+      <div className="mt-12 bg-blue-50 rounded-lg p-6 border border-blue-100">
+        <h2 className="text-xl font-bold mb-3">Empréstimos e Financiamentos</h2>
+        <p className="text-gray-700 mb-4">
+          Precisando calcular parcelas de empréstimos, juros compostos ou amortizações?
+          Visite nossa seção especializada de Empréstimos e Financiamentos.
+        </p>
+        <Link href="/emprestimos-financiamentos" className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg">
+          Ver calculadoras de empréstimos →
+        </Link>
+      </div>
+
       {/* Informações gerais sobre finanças */}
       <section className="mt-16 bg-white rounded-lg shadow-md p-8">
         <h2 className="text-2xl font-bold mb-6 text-center">Por que fazer planejamento financeiro?</h2>
@@ -153,17 +169,17 @@ export default async function FinanceCategoryPage() {
       <div className="mt-16 bg-gray-50 rounded-lg p-8 text-center">
         <h2 className="text-2xl font-bold mb-4">Explore outras categorias de calculadoras</h2>
         <p className="text-gray-600 mb-6">
-          Além das calculadoras financeiras, oferecemos ferramentas para saúde, conversões e muito mais.
+          Além das calculadoras financeiras, oferecemos ferramentas para saúde, recursos humanos e muito mais.
         </p>
         <div className="flex flex-wrap justify-center gap-4">
           <Link href="/categoria/health" className="bg-white border border-gray-200 rounded-lg px-6 py-3 hover:bg-gray-100 transition">
             Saúde
           </Link>
+          <Link href="/recursos-humanos" className="bg-white border border-gray-200 rounded-lg px-6 py-3 hover:bg-gray-100 transition">
+            Recursos Humanos
+          </Link>
           <Link href="/categoria/conversion" className="bg-white border border-gray-200 rounded-lg px-6 py-3 hover:bg-gray-100 transition">
             Conversões
-          </Link>
-          <Link href="/categoria/veterinary" className="bg-white border border-gray-200 rounded-lg px-6 py-3 hover:bg-gray-100 transition">
-            Veterinária
           </Link>
         </div>
       </div>

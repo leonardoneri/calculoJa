@@ -43,18 +43,26 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href={`/categoria/${CalculatorCategory.CONVERSION.toLowerCase()}`}
+                  href="/recursos-humanos"
                   className="text-gray-300 hover:text-white"
                 >
-                  Conversões e Medidas
+                  Recursos Humanos
                 </Link>
               </li>
               <li>
                 <Link
-                  href={`/categoria/${CalculatorCategory.VETERINARY.toLowerCase()}`}
+                  href="/emprestimos-financiamentos"
                   className="text-gray-300 hover:text-white"
                 >
-                  Veterinária
+                  Empréstimos e Financiamentos
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href={`/categoria/${CalculatorCategory.CONVERSION.toLowerCase()}`}
+                  className="text-gray-300 hover:text-white"
+                >
+                  Conversões e Medidas
                 </Link>
               </li>
               <li>

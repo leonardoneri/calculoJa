@@ -12,7 +12,63 @@ export const metadata: Metadata = {
 
 export default async function Home() {
   const calculators = await getAllCalculators()
-  const categories = Object.values(CalculatorCategory)
+  
+  // Lista de slugs específicos para cada categoria temática
+  const hrSlugs = ["rescisao", "decimo-terceiro", "ferias", "horas-extras", "seguro-desemprego", 
+                  "aposentadoria", "ir-fonte", "adicional-noturno", "vale-transporte", "pis-pasep", 
+                  "contribuicao-inss"];
+                  
+  const loanSlugs = ["emprestimo-consignado", "amortizacao", "juros-compostos", "valor-futuro"];
+  
+  const businessSlugs = ["markup", "ponto-equilibrio", "roi"];
+  
+  // Grupos temáticos de calculadoras (além das categorias padrão)
+  const groups = [
+    {
+      id: "health",
+      title: "Saúde e Bem-estar",
+      filter: (calc: any) => calc.category === CalculatorCategory.HEALTH
+    },
+    {
+      id: "finance",
+      title: "Finanças e Investimentos",
+      filter: (calc: any) => 
+        calc.category === CalculatorCategory.FINANCE && 
+        !loanSlugs.includes(calc.slug) // Exclui os que estão em empréstimos
+    },
+    {
+      id: "hr",
+      title: "Recursos Humanos",
+      filter: (calc: any) => 
+        calc.category === CalculatorCategory.BUSINESS && 
+        hrSlugs.includes(calc.slug)
+    },
+    {
+      id: "loans",
+      title: "Empréstimos e Financiamentos",
+      filter: (calc: any) => 
+        ((calc.category === CalculatorCategory.FINANCE || calc.category === CalculatorCategory.BUSINESS) && 
+        loanSlugs.includes(calc.slug))
+    },
+    {
+      id: "conversion",
+      title: "Conversões e Medidas",
+      filter: (calc: any) => calc.category === CalculatorCategory.CONVERSION
+    },
+    {
+      id: "business",
+      title: "Gestão de Negócios",
+      filter: (calc: any) => 
+        calc.category === CalculatorCategory.BUSINESS && 
+        businessSlugs.includes(calc.slug) && 
+        !hrSlugs.includes(calc.slug) // Exclui os que estão em recursos humanos
+    },
+    {
+      id: "veterinary",
+      title: "Veterinária",
+      filter: (calc: any) => calc.category === CalculatorCategory.VETERINARY
+    }
+  ];
 
   return (
     <div className="space-y-12">
@@ -33,15 +89,15 @@ export default async function Home() {
         </p>
       </section>
 
-      {categories.map((category) => {
-        const categoryCalculators = calculators.filter((calc) => calc.category === category)
-        if (categoryCalculators.length === 0) return null
+      {groups.map((group) => {
+        const groupCalculators = calculators.filter(group.filter)
+        if (groupCalculators.length === 0) return null
 
         return (
-          <section key={category} className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-800 border-b pb-2">{getCategoryTitle(category)}</h2>
+          <section key={group.id} className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-800 border-b pb-2">{group.title}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {categoryCalculators.map((calculator) => (
+              {groupCalculators.map((calculator) => (
                 <CalculatorCard key={calculator.slug} calculator={calculator} />
               ))}
             </div>
@@ -50,21 +106,4 @@ export default async function Home() {
       })}
     </div>
   )
-}
-
-function getCategoryTitle(category: CalculatorCategory): string {
-  switch (category) {
-    case CalculatorCategory.HEALTH:
-      return "Saúde e Bem-estar"
-    case CalculatorCategory.FINANCE:
-      return "Finanças e Investimentos"
-    case CalculatorCategory.CONVERSION:
-      return "Conversões e Medidas"
-    case CalculatorCategory.VETERINARY:
-      return "Veterinária"
-    case CalculatorCategory.BUSINESS:
-      return "Negócios"
-    default:
-      return "Outras Calculadoras"
-  }
 }
