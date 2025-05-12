@@ -178,6 +178,45 @@
       "config": {
         "decimalPlaces": 2
       }
+    },
+    {
+      "id": "ferias",
+      "slug": "ferias",
+      "title": "Calculadora de Férias",
+      "description": "Calcule o valor das suas férias, incluindo adicional de 1/3, abono pecuniário e descontos.",
+      "category": "BUSINESS",
+      "type": "ferias",
+      "icon": "🏖️",
+      "keywords": ["férias", "clt", "1/3 de férias", "abono pecuniário", "folha de pagamento", "direitos trabalhistas"],
+      "config": {
+        "decimalPlaces": 2
+      }
+    },
+    {
+      "id": "horas-extras",
+      "slug": "horas-extras",
+      "title": "Calculadora de Horas Extras",
+      "description": "Calcule o valor das horas extras trabalhadas, considerando adicional de 50% e 100% para domingos e feriados.",
+      "category": "BUSINESS",
+      "type": "horas-extras",
+      "icon": "⏱️",
+      "keywords": ["horas extras", "clt", "adicional", "trabalho", "jornada", "dsr", "descanso semanal remunerado"],
+      "config": {
+        "decimalPlaces": 2
+      }
+    },
+    {
+      "id": "seguro-desemprego",
+      "slug": "seguro-desemprego",
+      "title": "Calculadora de Seguro-Desemprego",
+      "description": "Calcule o valor e o número de parcelas do seguro-desemprego com base nos seus últimos salários.",
+      "category": "BUSINESS",
+      "type": "seguro-desemprego",
+      "icon": "🛡️",
+      "keywords": ["seguro desemprego", "desemprego", "benefício", "demissão", "trabalho", "parcelas", "fgts"],
+      "config": {
+        "decimalPlaces": 2
+      }
     }
   ]
 }

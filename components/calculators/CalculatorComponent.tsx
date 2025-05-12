@@ -17,6 +17,9 @@ import IdadeCaesCalculator from "./specific/IdadeCaesCalculator"
 import PontoEquilibrioCalculator from "./specific/PontoEquilibrioCalculator"
 import RescisaoCalculator from "./specific/RescisaoCalculator"
 import DecimoTerceiroCalculator from "./specific/DecimoTerceiroCalculator"
+import FeriasCalculator from "./specific/FeriasCalculator"
+import HorasExtrasCalculator from "./specific/HorasExtrasCalculator"
+import SeguroDesempregoCalculator from "./specific/SeguroDesempregoCalculator"
 import CalculatorSkeleton from "./CalculatorSkeleton"
 
 interface CalculatorComponentProps {
@@ -61,6 +64,9 @@ export default function CalculatorComponent({ slug }: CalculatorComponentProps) 
     'ponto-equilibrio': PontoEquilibrioCalculator,
     'rescisao': RescisaoCalculator,
     'decimo-terceiro': DecimoTerceiroCalculator,
+    'ferias': FeriasCalculator,
+    'horas-extras': HorasExtrasCalculator,
+    'seguro-desemprego': SeguroDesempregoCalculator,
   }
 
   const Component = calculatorMap[slug]
