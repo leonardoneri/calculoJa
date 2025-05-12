@@ -11,9 +11,9 @@ import { Suspense } from "react"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Portal de Calculadoras Especializadas",
-  description: "Mais de 25 calculadoras especializadas para facilitar seu dia a dia",
-  keywords: "calculadoras, imc, juros compostos, conversão de moedas, calculadora online",
+  title: "CálculoJá | Calculadoras Online Especializadas",
+  description: "CálculoJá oferece mais de 25 calculadoras especializadas para facilitar seu dia a dia",
+  keywords: "calculadoras, imc, juros compostos, conversão de moedas, calculadora online, cálculo já",
   generator: 'v0.dev'
 }
 
@@ -25,7 +25,8 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/calculoja-icon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/calculoja-icon.svg" />
       </head>
       <body className={inter.className} suppressHydrationWarning>
         <Providers>

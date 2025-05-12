@@ -42,7 +42,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   return {
-    title: `${categoryInfo.title} - Calculadoras Especializadas`,
+    title: `${categoryInfo.title} - CálculoJá`,
     description: categoryInfo.description,
   }
 }

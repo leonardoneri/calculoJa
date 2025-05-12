@@ -1,15 +1,25 @@
 import type { Metadata } from "next"
+import Image from "next/image"
 
 export const metadata: Metadata = {
-  title: "Sobre - Calculadoras Especializadas",
-  description: "Saiba mais sobre nossas calculadoras especializadas e a missão do nosso projeto.",
+  title: "Sobre - CálculoJá",
+  description: "Saiba mais sobre o CálculoJá e a missão do nosso projeto de calculadoras especializadas.",
 }
 
 export default function SobrePage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-12">
       <div className="text-center mb-10">
-        <h1 className="text-4xl font-bold mb-4">Sobre o Projeto</h1>
+        <div className="flex justify-center mb-6">
+          <Image 
+            src="/calculoja-logo.svg" 
+            alt="CálculoJá" 
+            width={280} 
+            height={80} 
+            className="h-16 w-auto" 
+            priority
+          />
+        </div>
         <p className="text-lg text-gray-600">
           Conheça a nossa missão e como ajudamos milhares de pessoas com ferramentas de cálculo especializadas.
         </p>
@@ -18,7 +28,7 @@ export default function SobrePage() {
       <div className="bg-white rounded-lg shadow-md p-6 mb-8">
         <h2 className="text-2xl font-bold mb-4">Nossa Missão</h2>
         <p className="text-gray-700 mb-4">
-          O projeto Calculadoras Especializadas surgiu da necessidade de ferramentas precisas e confiáveis para 
+          O CálculoJá surgiu da necessidade de ferramentas precisas e confiáveis para 
           cálculos em diversas áreas do conhecimento. Nossa missão é disponibilizar gratuitamente calculadoras 
           que ajudem as pessoas em suas atividades diárias, sejam elas relacionadas a saúde, finanças, negócios 
           ou conversões.

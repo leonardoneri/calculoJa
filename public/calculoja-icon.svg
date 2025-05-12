@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300">
+  <!-- Calculadora -->
+  <rect x="50" y="50" width="200" height="220" rx="24" fill="#0078D7" />
+  
+  <!-- Botões da calculadora -->
+  <rect x="80" y="120" width="35" height="35" rx="5" fill="#ffffff" />
+  <rect x="135" y="120" width="35" height="35" rx="5" fill="#ffffff" />
+  <rect x="190" y="120" width="35" height="35" rx="5" fill="#ffffff" />
+  
+  <rect x="80" y="170" width="35" height="35" rx="5" fill="#ffffff" />
+  <rect x="135" y="170" width="35" height="35" rx="5" fill="#ffffff" />
+  <rect x="190" y="170" width="35" height="35" rx="5" fill="#ffffff" />
+  
+  <rect x="80" y="220" width="35" height="35" rx="5" fill="#ffffff" />
+  <rect x="135" y="220" width="35" height="35" rx="5" fill="#ffffff" />
+  <rect x="190" y="220" width="35" height="35" rx="5" fill="#ffffff" />
+  
+  <!-- Check mark -->
+  <path d="M265 70 L195 140 L150 95" stroke="#30C165" stroke-width="30" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+</svg> 

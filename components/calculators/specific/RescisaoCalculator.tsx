@@ -24,6 +24,7 @@ const rescisaoSchema = z.object({
   diasFeriasVencidas: z.number().min(0, "Não pode ser negativo").max(30, "Máximo de 30 dias"),
   diasFeriasProporcionais: z.number().min(0, "Não pode ser negativo").max(30, "Máximo de 30 dias"),
   mesesTrabalhados: z.number().min(0, "Não pode ser negativo"),
+  anosTrabalhados: z.number().min(0, "Não pode ser negativo"),
 })
 
 export default function RescisaoCalculator({ onInputChange, onCalculate, config }: RescisaoCalculatorProps) {
@@ -35,6 +36,7 @@ export default function RescisaoCalculator({ onInputChange, onCalculate, config 
   const [diasFeriasVencidas, setDiasFeriasVencidas] = useState<string>("0")
   const [diasFeriasProporcionais, setDiasFeriasProporcionais] = useState<string>("0")
   const [mesesTrabalhados, setMesesTrabalhados] = useState<string>("0")
+  const [anosTrabalhados, setAnosTrabalhados] = useState<string>("0")
   const [resultado, setResultado] = useState<any>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -44,9 +46,20 @@ export default function RescisaoCalculator({ onInputChange, onCalculate, config 
       const demissao = new Date(dataDemissao)
       
       if (!isNaN(admissao.getTime()) && !isNaN(demissao.getTime())) {
-        const diffTime = Math.abs(demissao.getTime() - admissao.getTime())
-        const diffMonths = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 30.44))
-        setMesesTrabalhados(diffMonths.toString())
+        // Calcula meses trabalhados
+        let monthsDiff = (demissao.getFullYear() - admissao.getFullYear()) * 12 + 
+                         (demissao.getMonth() - admissao.getMonth())
+        
+        // Ajusta para considerar o mês completo apenas se trabalhou 15 dias ou mais no mês final
+        if (demissao.getDate() < admissao.getDate()) {
+          monthsDiff--
+        }
+        
+        // Calcula anos trabalhados para o aviso prévio proporcional
+        const yearsDiff = Math.floor(monthsDiff / 12)
+        
+        setMesesTrabalhados(Math.max(0, monthsDiff).toString())
+        setAnosTrabalhados(yearsDiff.toString())
       }
     }
   }, [dataAdmissao, dataDemissao])
@@ -57,6 +70,7 @@ export default function RescisaoCalculator({ onInputChange, onCalculate, config 
       const diasFeriasVencidasNum = Number.parseInt(diasFeriasVencidas || "0")
       const diasFeriasPropNum = Number.parseInt(diasFeriasProporcionais || "0")
       const mesesTrabalhadosNum = Number.parseInt(mesesTrabalhados || "0")
+      const anosTrabalhadosNum = Number.parseInt(anosTrabalhados || "0")
 
       rescisaoSchema.parse({ 
         ultimoSalario: salarioNum, 
@@ -66,7 +80,8 @@ export default function RescisaoCalculator({ onInputChange, onCalculate, config 
         avisoTrabalhado,
         diasFeriasVencidas: diasFeriasVencidasNum,
         diasFeriasProporcionais: diasFeriasPropNum,
-        mesesTrabalhados: mesesTrabalhadosNum
+        mesesTrabalhados: mesesTrabalhadosNum,
+        anosTrabalhados: anosTrabalhadosNum
       })
       
       setErrors({})
@@ -74,7 +89,8 @@ export default function RescisaoCalculator({ onInputChange, onCalculate, config 
         salarioNum, 
         diasFeriasVencidasNum, 
         diasFeriasPropNum,
-        mesesTrabalhadosNum 
+        mesesTrabalhadosNum,
+        anosTrabalhadosNum 
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -94,51 +110,72 @@ export default function RescisaoCalculator({ onInputChange, onCalculate, config 
     const validatedInput = validateInput()
     if (!validatedInput) return
 
-    const { salarioNum, diasFeriasVencidasNum, diasFeriasPropNum, mesesTrabalhadosNum } = validatedInput
+    const { salarioNum, diasFeriasVencidasNum, diasFeriasPropNum, mesesTrabalhadosNum, anosTrabalhadosNum } = validatedInput
     
     // Valores base para cálculos
     const salarioDia = salarioNum / 30
     const salarioMes = salarioNum
     
-    // Verbas comuns a todos os tipos de rescisão
-    const saldoSalario = Math.round((new Date(dataDemissao).getDate()) * salarioDia * 100) / 100
-    const decimoTerceiroProporcional = Math.round((new Date(dataDemissao).getMonth() + 1) * (salarioMes / 12) * 100) / 100
+    // Saldo de Salário - dias trabalhados no mês da demissão
+    const demissaoDate = new Date(dataDemissao)
+    const diasTrabalhados = demissaoDate.getDate()
+    const saldoSalario = diasTrabalhados * salarioDia
     
-    // Férias vencidas e proporcionais
-    const feriasVencidas = diasFeriasVencidasNum * salarioDia
+    // Décimo Terceiro Proporcional - meses completos no ano (considerar o mês da demissão apenas se >= 15 dias)
+    const mesAtual = demissaoDate.getMonth() + 1 // 1-12
+    const diaAtual = demissaoDate.getDate()
+    const mesesDecimoTerceiro = mesAtual - (diaAtual >= 15 ? 0 : 1)
+    const decimoTerceiroProporcional = (mesesDecimoTerceiro / 12) * salarioMes
+    
+    // Férias vencidas e proporcionais - valor proporcional real, não assumindo exatamente 30 dias
+    const feriasVencidas = (diasFeriasVencidasNum / 30) * salarioMes
     const tercoFeriasVencidas = feriasVencidas / 3
-    const feriasProporcionais = diasFeriasPropNum * salarioDia
+    
+    // Férias proporcionais - meses completos desde o último período aquisitivo
+    const mesesProporcionaisTrabalhados = Math.min(12, mesesTrabalhadosNum % 12)
+    const feriasPropCalculadas = (mesesProporcionaisTrabalhados / 12) * salarioMes
+    const feriasProporcionais = diasFeriasPropNum > 0 ? 
+                               (diasFeriasPropNum / 30) * salarioMes : 
+                               feriasPropCalculadas
     const tercoFeriasProporcionais = feriasProporcionais / 3
+    
+    // Valor do FGTS acumulado (8% do salário * meses trabalhados)
+    const fgtsAcumulado = salarioMes * 0.08 * mesesTrabalhadosNum
     
     // Verbas específicas por tipo de rescisão
     let multaFGTS = 0
     let avisoPrevio = 0
     let aviso = "Não aplicável"
+    let diasAviso = 30 // Padrão de 30 dias
     
     switch (motivoDemissao) {
       case "sem-justa-causa":
-        // 40% do FGTS
-        multaFGTS = salarioMes * 0.4 * mesesTrabalhadosNum
+        // 40% do FGTS acumulado
+        multaFGTS = fgtsAcumulado * 0.4
+        
+        // Aviso prévio proporcional (30 dias + 3 dias por ano trabalhado, máximo de 90 dias)
+        diasAviso = Math.min(90, 30 + (3 * anosTrabalhadosNum))
         
         // Aviso prévio indenizado (se não foi trabalhado)
         if (!avisoTrabalhado) {
-          avisoPrevio = salarioMes
-          aviso = "Aviso Prévio Indenizado"
+          avisoPrevio = (diasAviso / 30) * salarioMes
+          aviso = `Aviso Prévio Indenizado (${diasAviso} dias)`
         } else {
-          aviso = "Aviso Prévio Trabalhado"
+          aviso = `Aviso Prévio Trabalhado (${diasAviso} dias)`
         }
         break
         
       case "comum-acordo":
-        // 20% do FGTS
-        multaFGTS = salarioMes * 0.2 * mesesTrabalhadosNum
+        // 20% do FGTS acumulado
+        multaFGTS = fgtsAcumulado * 0.2
         
         // Aviso prévio indenizado pela metade
+        diasAviso = Math.min(90, 30 + (3 * anosTrabalhadosNum))
         if (!avisoTrabalhado) {
-          avisoPrevio = salarioMes / 2
-          aviso = "Aviso Prévio Indenizado (50%)"
+          avisoPrevio = ((diasAviso / 30) * salarioMes) / 2
+          aviso = `Aviso Prévio Indenizado (50% de ${diasAviso} dias)`
         } else {
-          aviso = "Aviso Prévio Trabalhado"
+          aviso = `Aviso Prévio Trabalhado (${diasAviso} dias)`
         }
         break
         
@@ -149,6 +186,7 @@ export default function RescisaoCalculator({ onInputChange, onCalculate, config 
         avisoPrevio = 0
         
         if (motivoDemissao === "pedido-demissao" && !avisoTrabalhado) {
+          diasAviso = 30 // Sem proporcionalidade em caso de pedido de demissão
           aviso = "Desconto do Aviso Não Trabalhado"
           avisoPrevio = -salarioMes // Valor negativo pois será descontado
         } else {
@@ -175,7 +213,9 @@ export default function RescisaoCalculator({ onInputChange, onCalculate, config 
       feriasProporcionais: feriasProporcionais.toFixed(2),
       tercoFeriasProporcionais: tercoFeriasProporcionais.toFixed(2),
       multaFGTS: multaFGTS.toFixed(2),
+      fgtsAcumulado: fgtsAcumulado.toFixed(2),
       avisoPrevio: Math.abs(avisoPrevio).toFixed(2),
+      diasAviso: diasAviso,
       tipoAviso: aviso,
       descontoAviso: avisoPrevio < 0,
       total: total.toFixed(2)
@@ -307,7 +347,8 @@ export default function RescisaoCalculator({ onInputChange, onCalculate, config 
 
       <div className="mb-6">
         <p className="text-sm text-gray-500">
-          Tempo de serviço estimado: <span className="font-medium">{mesesTrabalhados} meses</span>
+          Tempo de serviço estimado: <span className="font-medium">{mesesTrabalhados} meses</span> 
+          (<span className="font-medium">{anosTrabalhados} anos</span> completos)
         </p>
       </div>
 
@@ -359,10 +400,16 @@ export default function RescisaoCalculator({ onInputChange, onCalculate, config 
             )}
             
             {Number(resultado.multaFGTS) > 0 && (
-              <div className="grid grid-cols-2 gap-2">
-                <span className="text-gray-600">Multa FGTS:</span>
-                <span className="font-medium">R$ {resultado.multaFGTS}</span>
-              </div>
+              <>
+                <div className="grid grid-cols-2 gap-2">
+                  <span className="text-gray-600">FGTS acumulado (estimado):</span>
+                  <span className="font-medium">R$ {resultado.fgtsAcumulado}</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <span className="text-gray-600">Multa FGTS (40%):</span>
+                  <span className="font-medium">R$ {resultado.multaFGTS}</span>
+                </div>
+              </>
             )}
             
             {resultado.tipoAviso !== "Não Aplicável" && (
@@ -386,6 +433,8 @@ export default function RescisaoCalculator({ onInputChange, onCalculate, config 
               <li>Este cálculo é uma estimativa e pode não representar o valor exato da rescisão.</li>
               <li>Não estão inclusos descontos de INSS e IRRF sobre as verbas rescisórias.</li>
               <li>O saque do FGTS é um direito adicional em caso de demissão sem justa causa.</li>
+              <li>Meses completos para férias e 13º são considerados apenas se houver 15 dias ou mais trabalhados.</li>
+              <li>O aviso prévio proporcional aumenta 3 dias por ano de serviço, até o limite de 90 dias.</li>
               <li>Consulte um contador ou advogado para valores precisos e orientações específicas.</li>
             </ul>
           </div>

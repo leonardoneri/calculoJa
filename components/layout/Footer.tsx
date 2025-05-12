@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { CalculatorCategory } from "@/lib/types"
+import Image from "next/image"
 
 export default function Footer() {
   const currentYear = new Date().getFullYear()
@@ -9,7 +10,15 @@ export default function Footer() {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="text-lg font-bold mb-4">Calculadoras Especializadas</h3>
+            <div className="mb-4">
+              <Image 
+                src="/calculoja-logo.svg" 
+                alt="CálculoJá" 
+                width={140} 
+                height={40} 
+                className="h-10 w-auto mb-2" 
+              />
+            </div>
             <p className="text-gray-300">Ferramentas de cálculo gratuitas para facilitar seu dia a dia.</p>
           </div>
 
@@ -98,7 +107,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-300">
-          <p>© {currentYear} Portal de Calculadoras Especializadas. Todos os direitos reservados.</p>
+          <p>© {currentYear} CálculoJá. Todos os direitos reservados.</p>
         </div>
       </div>
     </footer>

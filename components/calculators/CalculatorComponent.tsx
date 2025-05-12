@@ -20,6 +20,13 @@ import DecimoTerceiroCalculator from "./specific/DecimoTerceiroCalculator"
 import FeriasCalculator from "./specific/FeriasCalculator"
 import HorasExtrasCalculator from "./specific/HorasExtrasCalculator"
 import SeguroDesempregoCalculator from "./specific/SeguroDesempregoCalculator"
+import AposentadoriaCalculator from "./specific/AposentadoriaCalculator"
+import IRFonteCalculator from "./specific/IRFonteCalculator"
+import AdicionalNoturnoCalculator from "./specific/AdicionalNoturnoCalculator"
+import ValeTransporteCalculator from "./specific/ValeTransporteCalculator"
+import EmprestimoConsignadoCalculator from "./specific/EmprestimoConsignadoCalculator"
+import PISPASEPCalculator from "./specific/PISPASEPCalculator"
+import ContribuicaoINSSCalculator from "./specific/ContribuicaoINSSCalculator"
 import CalculatorSkeleton from "./CalculatorSkeleton"
 
 interface CalculatorComponentProps {
@@ -67,6 +74,13 @@ export default function CalculatorComponent({ slug }: CalculatorComponentProps) 
     'ferias': FeriasCalculator,
     'horas-extras': HorasExtrasCalculator,
     'seguro-desemprego': SeguroDesempregoCalculator,
+    'aposentadoria': AposentadoriaCalculator,
+    'ir-fonte': IRFonteCalculator,
+    'adicional-noturno': AdicionalNoturnoCalculator,
+    'vale-transporte': ValeTransporteCalculator,
+    'emprestimo-consignado': EmprestimoConsignadoCalculator,
+    'pis-pasep': PISPASEPCalculator,
+    'contribuicao-inss': ContribuicaoINSSCalculator,
   }
 
   const Component = calculatorMap[slug]

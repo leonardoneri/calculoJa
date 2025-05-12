@@ -217,6 +217,97 @@
       "config": {
         "decimalPlaces": 2
       }
+    },
+    {
+      "id": "aposentadoria",
+      "slug": "aposentadoria",
+      "title": "Calculadora de Aposentadoria",
+      "description": "Simule sua aposentadoria e descubra se você está no caminho certo para garantir sua independência financeira.",
+      "category": "BUSINESS",
+      "type": "aposentadoria",
+      "icon": "👴",
+      "keywords": ["aposentadoria", "previdência", "inss", "planejamento financeiro", "aposentadoria por idade", "tempo de contribuição"],
+      "config": {
+        "decimalPlaces": 2
+      }
+    },
+    {
+      "id": "ir-fonte",
+      "slug": "ir-fonte",
+      "title": "Calculadora de IR na Fonte",
+      "description": "Calcule o imposto de renda retido na fonte sobre salários, férias e 13º salário.",
+      "category": "BUSINESS",
+      "type": "ir-fonte",
+      "icon": "💸",
+      "keywords": ["imposto de renda", "irrf", "retenção na fonte", "salário", "férias", "décimo terceiro", "tributação"],
+      "config": {
+        "decimalPlaces": 2
+      }
+    },
+    {
+      "id": "adicional-noturno",
+      "slug": "adicional-noturno",
+      "title": "Calculadora de Adicional Noturno",
+      "description": "Calcule o valor do adicional noturno considerando a redução da hora noturna e reflexos no DSR.",
+      "category": "BUSINESS",
+      "type": "adicional-noturno",
+      "icon": "🌙",
+      "keywords": ["adicional noturno", "clt", "hora noturna reduzida", "trabalho noturno", "dsr", "direitos trabalhistas"],
+      "config": {
+        "decimalPlaces": 2
+      }
+    },
+    {
+      "id": "vale-transporte",
+      "slug": "vale-transporte",
+      "title": "Calculadora de Vale-Transporte",
+      "description": "Calcule se vale a pena solicitar o vale-transporte com base no seu salário e gasto com passagens.",
+      "category": "BUSINESS",
+      "type": "vale-transporte",
+      "icon": "🚌",
+      "keywords": ["vale-transporte", "vt", "transporte", "passagem", "benefício", "desconto salarial", "subsídio"],
+      "config": {
+        "decimalPlaces": 2
+      }
+    },
+    {
+      "id": "emprestimo-consignado",
+      "slug": "emprestimo-consignado",
+      "title": "Calculadora de Empréstimo Consignado",
+      "description": "Simule um empréstimo consignado e verifique se a parcela cabe no seu orçamento conforme a sua margem consignável.",
+      "category": "BUSINESS",
+      "type": "emprestimo-consignado",
+      "icon": "💰",
+      "keywords": ["empréstimo consignado", "consignado", "financiamento", "crédito", "margem consignável", "simulação", "parcelas"],
+      "config": {
+        "decimalPlaces": 2
+      }
+    },
+    {
+      "id": "pis-pasep",
+      "slug": "pis-pasep",
+      "title": "Calculadora de Benefícios PIS/PASEP",
+      "description": "Calcule o valor do seu abono salarial PIS/PASEP conforme os meses trabalhados no ano-base.",
+      "category": "BUSINESS",
+      "type": "pis-pasep",
+      "icon": "💼",
+      "keywords": ["pis", "pasep", "abono salarial", "benefício", "ano-base", "caixa econômica", "banco do brasil"],
+      "config": {
+        "decimalPlaces": 2
+      }
+    },
+    {
+      "id": "contribuicao-inss",
+      "slug": "contribuicao-inss",
+      "title": "Calculadora de Contribuição INSS",
+      "description": "Calcule o valor da sua contribuição mensal ao INSS conforme o seu tipo de vínculo, salário e alíquota aplicável.",
+      "category": "BUSINESS",
+      "type": "contribuicao-inss",
+      "icon": "🏛️",
+      "keywords": ["inss", "contribuição previdenciária", "alíquota", "previdência social", "aposentadoria", "empregado", "autônomo"],
+      "config": {
+        "decimalPlaces": 2
+      }
     }
   ]
 }

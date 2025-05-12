@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { z } from "zod"
 
 interface AposentadoriaCalculatorProps {
@@ -10,93 +10,50 @@ interface AposentadoriaCalculatorProps {
 }
 
 const aposentadoriaSchema = z.object({
-  currentAge: z
-    .number()
-    .int()
-    .positive("A idade atual deve ser um número inteiro positivo")
-    .max(100, "A idade atual deve ser menor que 100"),
-  retirementAge: z
-    .number()
-    .int()
-    .positive("A idade de aposentadoria deve ser um número inteiro positivo")
-    .max(120, "A idade de aposentadoria deve ser menor que 120"),
-  currentSavings: z.number().nonnegative("O valor atual de economias deve ser maior ou igual a zero"),
-  monthlySavings: z.number().nonnegative("A contribuição mensal deve ser maior ou igual a zero"),
-  annualReturn: z
-    .number()
-    .nonnegative("O retorno anual deve ser maior ou igual a zero")
-    .max(30, "O retorno anual deve ser menor que 30%"),
-  annualInflation: z
-    .number()
-    .nonnegative("A inflação anual deve ser maior ou igual a zero")
-    .max(30, "A inflação anual deve ser menor que 30%"),
-  desiredIncome: z.number().positive("A renda desejada deve ser maior que zero"),
-  lifeExpectancy: z
-    .number()
-    .int()
-    .positive("A expectativa de vida deve ser um número inteiro positivo")
-    .max(120, "A expectativa de vida deve ser menor que 120"),
+  idade: z.number().min(16, "Idade deve ser maior que 16 anos").max(100, "Idade deve ser menor que 100 anos"),
+  sexo: z.enum(["M", "F"], {
+    errorMap: () => ({ message: "Selecione o sexo" }),
+  }),
+  tempoContribuicao: z.number().min(0, "Não pode ser negativo"),
+  salarioAtual: z.number().positive("O salário deve ser maior que zero"),
+  expectativaAposentadoria: z.number().positive("O valor deve ser maior que zero"),
+  contribuicaoMensal: z.number().min(0, "Não pode ser negativo"),
 })
 
 export default function AposentadoriaCalculator({ onInputChange, onCalculate, config }: AposentadoriaCalculatorProps) {
-  const [currentAge, setCurrentAge] = useState<string>("")
-  const [retirementAge, setRetirementAge] = useState<string>("")
-  const [currentSavings, setCurrentSavings] = useState<string>("")
-  const [monthlySavings, setMonthlySavings] = useState<string>("")
-  const [annualReturn, setAnnualReturn] = useState<string>("6")
-  const [annualInflation, setAnnualInflation] = useState<string>("4")
-  const [desiredIncome, setDesiredIncome] = useState<string>("")
-  const [lifeExpectancy, setLifeExpectancy] = useState<string>("85")
-  const [result, setResult] = useState<any>(null)
+  const [idade, setIdade] = useState<string>("30")
+  const [sexo, setSexo] = useState<"M" | "F">("M")
+  const [tempoContribuicao, setTempoContribuicao] = useState<string>("0")
+  const [salarioAtual, setSalarioAtual] = useState<string>("")
+  const [expectativaAposentadoria, setExpectativaAposentadoria] = useState<string>("70")
+  const [contribuicaoMensal, setContribuicaoMensal] = useState<string>("")
+  const [resultado, setResultado] = useState<any>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const validateInput = () => {
     try {
-      const currentAgeNum = Number.parseInt(currentAge)
-      const retirementAgeNum = Number.parseInt(retirementAge)
-      const currentSavingsNum = Number.parseFloat(currentSavings)
-      const monthlySavingsNum = Number.parseFloat(monthlySavings)
-      const annualReturnNum = Number.parseFloat(annualReturn)
-      const annualInflationNum = Number.parseFloat(annualInflation)
-      const desiredIncomeNum = Number.parseFloat(desiredIncome)
-      const lifeExpectancyNum = Number.parseInt(lifeExpectancy)
-
-      // Additional validation
-      if (retirementAgeNum <= currentAgeNum) {
-        setErrors({
-          retirementAge: "A idade de aposentadoria deve ser maior que a idade atual",
-        })
-        return null
-      }
-
-      if (lifeExpectancyNum <= retirementAgeNum) {
-        setErrors({
-          lifeExpectancy: "A expectativa de vida deve ser maior que a idade de aposentadoria",
-        })
-        return null
-      }
+      const idadeNum = Number.parseInt(idade)
+      const tempoContribuicaoNum = Number.parseInt(tempoContribuicao)
+      const salarioAtualNum = Number.parseFloat(salarioAtual)
+      const expectativaAposentadoriaNum = Number.parseInt(expectativaAposentadoria)
+      const contribuicaoMensalNum = Number.parseFloat(contribuicaoMensal || "0")
 
       aposentadoriaSchema.parse({
-        currentAge: currentAgeNum,
-        retirementAge: retirementAgeNum,
-        currentSavings: currentSavingsNum,
-        monthlySavings: monthlySavingsNum,
-        annualReturn: annualReturnNum,
-        annualInflation: annualInflationNum,
-        desiredIncome: desiredIncomeNum,
-        lifeExpectancy: lifeExpectancyNum,
+        idade: idadeNum,
+        sexo,
+        tempoContribuicao: tempoContribuicaoNum,
+        salarioAtual: salarioAtualNum,
+        expectativaAposentadoria: expectativaAposentadoriaNum,
+        contribuicaoMensal: contribuicaoMensalNum
       })
 
       setErrors({})
       return {
-        currentAgeNum,
-        retirementAgeNum,
-        currentSavingsNum,
-        monthlySavingsNum,
-        annualReturnNum,
-        annualInflationNum,
-        desiredIncomeNum,
-        lifeExpectancyNum,
+        idadeNum,
+        tempoContribuicaoNum,
+        salarioAtualNum,
+        expectativaAposentadoriaNum,
+        contribuicaoMensalNum
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -112,482 +69,315 @@ export default function AposentadoriaCalculator({ onInputChange, onCalculate, co
     }
   }
 
-  const calculateRetirement = () => {
+  const calcularAposentadoria = () => {
     const validatedInput = validateInput()
     if (!validatedInput) return
 
-    const {
-      currentAgeNum,
-      retirementAgeNum,
-      currentSavingsNum,
-      monthlySavingsNum,
-      annualReturnNum,
-      annualInflationNum,
-      desiredIncomeNum,
-      lifeExpectancyNum,
-    } = validatedInput
+    const { idadeNum, tempoContribuicaoNum, salarioAtualNum, expectativaAposentadoriaNum, contribuicaoMensalNum } = validatedInput
 
-    // Convert percentages to decimals
-    const monthlyReturn = Math.pow(1 + annualReturnNum / 100, 1 / 12) - 1
-    const monthlyInflation = Math.pow(1 + annualInflationNum / 100, 1 / 12) - 1
-    const realMonthlyReturn = (1 + monthlyReturn) / (1 + monthlyInflation) - 1
+    // Regras para aposentadoria por idade conforme regras de transição 2023
+    // Homens: 65 anos + 15 anos de contribuição
+    // Mulheres: 62 anos + 15 anos de contribuição
+    const idadeMinimaHomem = 65
+    const idadeMinimaMulther = 62
+    const tempoMinContribuicao = 15
+    
+    // Regras para aposentadoria por tempo de contribuição
+    // Regra 85/95 progressiva (soma de idade + tempo de contribuição)
+    const pontuacaoMinima = sexo === "M" ? 98 : 88 // Em 2023
+    const pontuacaoAtual = idadeNum + tempoContribuicaoNum
+    
+    // Verificação de elegibilidade atual
+    let elegivel = false
+    let motivoElegibilidade = ""
+    
+    // Verificar elegibilidade por idade
+    if (sexo === "M" && idadeNum >= idadeMinimaHomem && tempoContribuicaoNum >= tempoMinContribuicao) {
+      elegivel = true
+      motivoElegibilidade = "Aposentadoria por idade (homem)"
+    } else if (sexo === "F" && idadeNum >= idadeMinimaMulther && tempoContribuicaoNum >= tempoMinContribuicao) {
+      elegivel = true
+      motivoElegibilidade = "Aposentadoria por idade (mulher)"
+    }
+    
+    // Verificar elegibilidade por pontuação
+    if (pontuacaoAtual >= pontuacaoMinima && tempoContribuicaoNum >= (sexo === "M" ? 35 : 30)) {
+      elegivel = true
+      motivoElegibilidade = "Aposentadoria por pontuação"
+    }
+    
+    // Cálculo de tempo faltante para aposentadoria por idade
+    const anosParaIdadeMin = sexo === "M" 
+      ? Math.max(0, idadeMinimaHomem - idadeNum) 
+      : Math.max(0, idadeMinimaMulther - idadeNum)
+    
+    const anosParaContribuicaoMin = Math.max(0, tempoMinContribuicao - tempoContribuicaoNum)
+    
+    // Tempo faltante (o maior entre idade e contribuição)
+    const anosFaltantes = Math.max(anosParaIdadeMin, anosParaContribuicaoMin)
+    
+    // Cálculo de pontos faltantes
+    const pontosFaltantes = Math.max(0, pontuacaoMinima - pontuacaoAtual)
+    
+    // Calcular idade de aposentadoria projetada
+    const idadeAposentadoria = idadeNum + anosFaltantes
+    
+    // Calcular expectativa de vida após aposentadoria
+    const anosAposAposentadoria = Math.max(0, expectativaAposentadoriaNum - idadeAposentadoria)
+    
+    // Calcular valor estimado da aposentadoria (80% da média dos salários de contribuição)
+    // Simplificação: considerando apenas o salário atual para o cálculo
+    const valorEstimadoAposentadoria = salarioAtualNum * 0.8
+    
+    // Calcular valor necessário para complementar a aposentadoria
+    // Considerando renda desejada na aposentadoria igual ao salário atual
+    const necessidadeComplemento = Math.max(0, salarioAtualNum - valorEstimadoAposentadoria)
+    
+    // Simulação simples de reserva financeira necessária para complementar aposentadoria
+    // Considerando 0.5% de rendimento mensal real (descontada a inflação)
+    const rendimentoMensalEstimado = 0.005 // 0.5% ao mês
+    const reservaNecessaria = necessidadeComplemento / rendimentoMensalEstimado
+    
+    // Quanto economizar mensalmente para atingir a reserva necessária
+    // Fórmula simplificada: PMT = FV / ((1+r)^n - 1) / r * (1+r)
+    const meses = anosFaltantes * 12
+    let valorMensalNecessario = 0
+    
+    if (meses > 0 && reservaNecessaria > 0) {
+      const taxa = 0.005 // 0.5% ao mês
+      valorMensalNecessario = reservaNecessaria / (((1 + taxa) ** meses - 1) / taxa * (1 + taxa))
+    }
+    
+    // Déficit mensal entre o que está contribuindo e o que precisaria contribuir
+    const deficitMensal = Math.max(0, valorMensalNecessario - contribuicaoMensalNum)
 
-    // Calculate years until retirement
-    const yearsToRetirement = retirementAgeNum - currentAgeNum
-    const monthsToRetirement = yearsToRetirement * 12
-
-    // Calculate future value of current savings
-    const futureValueCurrentSavings = currentSavingsNum * Math.pow(1 + monthlyReturn, monthsToRetirement)
-
-    // Calculate future value of monthly contributions
-    let futureValueContributions = 0
-    for (let i = 0; i < monthsToRetirement; i++) {
-      futureValueContributions += monthlySavingsNum * Math.pow(1 + monthlyReturn, i)
+    const resultadoFinal = {
+      elegivel,
+      motivoElegibilidade,
+      anosFaltantes,
+      pontosFaltantes,
+      idadeAposentadoria,
+      anosAposAposentadoria,
+      valorEstimadoAposentadoria: valorEstimadoAposentadoria.toFixed(2),
+      necessidadeComplemento: necessidadeComplemento.toFixed(2),
+      reservaNecessaria: reservaNecessaria.toFixed(2),
+      valorMensalNecessario: valorMensalNecessario.toFixed(2),
+      deficitMensal: deficitMensal.toFixed(2)
     }
 
-    // Total retirement savings
-    const totalRetirementSavings = futureValueCurrentSavings + futureValueContributions
-
-    // Calculate retirement duration in months
-    const retirementDuration = (lifeExpectancyNum - retirementAgeNum) * 12
-
-    // Calculate inflation-adjusted desired monthly income at retirement
-    const futureMonthlyIncome = desiredIncomeNum * Math.pow(1 + monthlyInflation, monthsToRetirement)
-
-    // Calculate required savings for retirement using the 4% rule
-    // The 4% rule suggests you can withdraw 4% of your savings in the first year of retirement,
-    // and then adjust for inflation in subsequent years
-    const requiredSavings = (futureMonthlyIncome * 12) / 0.04
-
-    // Calculate monthly income from savings using the 4% rule
-    const monthlyIncomeFromSavings = (totalRetirementSavings * 0.04) / 12
-
-    // Calculate savings gap
-    const savingsGap = requiredSavings - totalRetirementSavings
-    const monthlySavingsNeeded =
-      savingsGap > 0 ? (savingsGap * monthlyReturn) / (Math.pow(1 + monthlyReturn, monthsToRetirement) - 1) : 0
-
-    // Calculate savings by year (for chart)
-    const savingsByYear = []
-    let currentSavings = currentSavingsNum
-
-    for (let year = 1; year <= yearsToRetirement; year++) {
-      // Add monthly contributions for the year
-      for (let month = 1; month <= 12; month++) {
-        currentSavings = currentSavings * (1 + monthlyReturn) + monthlySavingsNum
-      }
-
-      savingsByYear.push({
-        year: currentAgeNum + year,
-        savings: Math.round(currentSavings),
-      })
-    }
-
-    const calculationResult = {
-      currentAge: currentAgeNum,
-      retirementAge: retirementAgeNum,
-      currentSavings: currentSavingsNum,
-      monthlySavings: monthlySavingsNum,
-      annualReturn: annualReturnNum,
-      annualInflation: annualInflationNum,
-      desiredIncome: desiredIncomeNum,
-      lifeExpectancy: lifeExpectancyNum,
-      yearsToRetirement,
-      totalRetirementSavings: Math.round(totalRetirementSavings),
-      futureMonthlyIncome: Math.round(futureMonthlyIncome),
-      requiredSavings: Math.round(requiredSavings),
-      monthlyIncomeFromSavings: Math.round(monthlyIncomeFromSavings),
-      savingsGap: Math.round(savingsGap),
-      additionalMonthlySavingsNeeded: Math.round(monthlySavingsNeeded),
-      savingsByYear,
-      isOnTrack: totalRetirementSavings >= requiredSavings,
-      retirementDuration,
-    }
-
-    setResult(calculationResult)
+    setResultado(resultadoFinal)
 
     // Call parent callbacks
-    onInputChange("currentAge", currentAgeNum)
-    onInputChange("retirementAge", retirementAgeNum)
-    onInputChange("currentSavings", currentSavingsNum)
-    onInputChange("monthlySavings", monthlySavingsNum)
-    onInputChange("annualReturn", annualReturnNum)
-    onInputChange("annualInflation", annualInflationNum)
-    onInputChange("desiredIncome", desiredIncomeNum)
-    onInputChange("lifeExpectancy", lifeExpectancyNum)
-    onCalculate(calculationResult)
-  }
-
-  // Calculate automatically when inputs change
-  useEffect(() => {
-    if (
-      currentAge &&
-      retirementAge &&
-      currentSavings !== undefined &&
-      monthlySavings !== undefined &&
-      annualReturn &&
-      annualInflation &&
-      desiredIncome &&
-      lifeExpectancy
-    ) {
-      const currentAgeNum = Number.parseInt(currentAge)
-      const retirementAgeNum = Number.parseInt(retirementAge)
-      const currentSavingsNum = Number.parseFloat(currentSavings)
-      const monthlySavingsNum = Number.parseFloat(monthlySavings)
-      const annualReturnNum = Number.parseFloat(annualReturn)
-      const annualInflationNum = Number.parseFloat(annualInflation)
-      const desiredIncomeNum = Number.parseFloat(desiredIncome)
-      const lifeExpectancyNum = Number.parseInt(lifeExpectancy)
-
-      if (
-        !isNaN(currentAgeNum) &&
-        !isNaN(retirementAgeNum) &&
-        !isNaN(currentSavingsNum) &&
-        !isNaN(monthlySavingsNum) &&
-        !isNaN(annualReturnNum) &&
-        !isNaN(annualInflationNum) &&
-        !isNaN(desiredIncomeNum) &&
-        !isNaN(lifeExpectancyNum) &&
-        currentAgeNum > 0 &&
-        retirementAgeNum > currentAgeNum &&
-        currentSavingsNum >= 0 &&
-        monthlySavingsNum >= 0 &&
-        annualReturnNum >= 0 &&
-        annualReturnNum <= 30 &&
-        annualInflationNum >= 0 &&
-        annualInflationNum <= 30 &&
-        desiredIncomeNum > 0 &&
-        lifeExpectancyNum > retirementAgeNum
-      ) {
-        calculateRetirement()
-      }
-    }
-  }, [
-    currentAge,
-    retirementAge,
-    currentSavings,
-    monthlySavings,
-    annualReturn,
-    annualInflation,
-    desiredIncome,
-    lifeExpectancy,
-  ])
-
-  // Format currency
-  const formatCurrency = (value: number) => {
-    return value.toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    })
+    onInputChange("idade", idadeNum)
+    onInputChange("sexo", sexo)
+    onInputChange("salarioAtual", salarioAtualNum)
+    onCalculate(resultadoFinal)
   }
 
   return (
     <div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div>
-          <label htmlFor="currentAge" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="idade" className="block text-sm font-medium text-gray-700 mb-1">
             Idade Atual
           </label>
           <input
-            id="currentAge"
+            id="idade"
             type="number"
-            value={currentAge}
-            onChange={(e) => setCurrentAge(e.target.value)}
+            value={idade}
+            onChange={(e) => setIdade(e.target.value)}
             placeholder="Ex: 30"
             className="calculator-input"
-            min="18"
+            min="16"
             max="100"
           />
-          {errors.currentAge && <p className="text-red-500 text-sm mt-1">{errors.currentAge}</p>}
+          {errors.idade && <p className="text-red-500 text-sm mt-1">{errors.idade}</p>}
         </div>
 
         <div>
-          <label htmlFor="retirementAge" className="block text-sm font-medium text-gray-700 mb-1">
-            Idade de Aposentadoria
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Sexo
           </label>
-          <input
-            id="retirementAge"
-            type="number"
-            value={retirementAge}
-            onChange={(e) => setRetirementAge(e.target.value)}
-            placeholder="Ex: 65"
-            className="calculator-input"
-            min="30"
-            max="120"
-          />
-          {errors.retirementAge && <p className="text-red-500 text-sm mt-1">{errors.retirementAge}</p>}
+          <div className="flex space-x-4 mt-2">
+            <div className="flex items-center">
+              <input
+                id="sexoM"
+                type="radio"
+                checked={sexo === "M"}
+                onChange={() => setSexo("M")}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+              />
+              <label htmlFor="sexoM" className="ml-2 block text-sm text-gray-700">
+                Masculino
+              </label>
+            </div>
+            <div className="flex items-center">
+              <input
+                id="sexoF"
+                type="radio"
+                checked={sexo === "F"}
+                onChange={() => setSexo("F")}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+              />
+              <label htmlFor="sexoF" className="ml-2 block text-sm text-gray-700">
+                Feminino
+              </label>
+            </div>
+          </div>
+          {errors.sexo && <p className="text-red-500 text-sm mt-1">{errors.sexo}</p>}
         </div>
 
         <div>
-          <label htmlFor="currentSavings" className="block text-sm font-medium text-gray-700 mb-1">
-            Economias Atuais (R$)
+          <label htmlFor="tempoContribuicao" className="block text-sm font-medium text-gray-700 mb-1">
+            Tempo de Contribuição (anos)
           </label>
           <input
-            id="currentSavings"
+            id="tempoContribuicao"
             type="number"
-            value={currentSavings}
-            onChange={(e) => setCurrentSavings(e.target.value)}
-            placeholder="Ex: 50000"
-            className="calculator-input"
-            min="0"
-            step="1000"
-          />
-          {errors.currentSavings && <p className="text-red-500 text-sm mt-1">{errors.currentSavings}</p>}
-        </div>
-
-        <div>
-          <label htmlFor="monthlySavings" className="block text-sm font-medium text-gray-700 mb-1">
-            Contribuição Mensal (R$)
-          </label>
-          <input
-            id="monthlySavings"
-            type="number"
-            value={monthlySavings}
-            onChange={(e) => setMonthlySavings(e.target.value)}
-            placeholder="Ex: 1000"
-            className="calculator-input"
-            min="0"
-            step="100"
-          />
-          {errors.monthlySavings && <p className="text-red-500 text-sm mt-1">{errors.monthlySavings}</p>}
-        </div>
-
-        <div>
-          <label htmlFor="annualReturn" className="block text-sm font-medium text-gray-700 mb-1">
-            Retorno Anual Esperado (%)
-          </label>
-          <input
-            id="annualReturn"
-            type="number"
-            value={annualReturn}
-            onChange={(e) => setAnnualReturn(e.target.value)}
-            placeholder="Ex: 6"
+            value={tempoContribuicao}
+            onChange={(e) => setTempoContribuicao(e.target.value)}
+            placeholder="Ex: 10"
             className="calculator-input"
             min="0"
-            max="30"
-            step="0.1"
+            max="50"
           />
-          {errors.annualReturn && <p className="text-red-500 text-sm mt-1">{errors.annualReturn}</p>}
+          {errors.tempoContribuicao && <p className="text-red-500 text-sm mt-1">{errors.tempoContribuicao}</p>}
         </div>
 
         <div>
-          <label htmlFor="annualInflation" className="block text-sm font-medium text-gray-700 mb-1">
-            Inflação Anual Esperada (%)
+          <label htmlFor="salarioAtual" className="block text-sm font-medium text-gray-700 mb-1">
+            Salário Atual (R$)
           </label>
           <input
-            id="annualInflation"
+            id="salarioAtual"
             type="number"
-            value={annualInflation}
-            onChange={(e) => setAnnualInflation(e.target.value)}
-            placeholder="Ex: 4"
+            value={salarioAtual}
+            onChange={(e) => setSalarioAtual(e.target.value)}
+            placeholder="Ex: 3000"
             className="calculator-input"
             min="0"
-            max="30"
-            step="0.1"
+            step="0.01"
           />
-          {errors.annualInflation && <p className="text-red-500 text-sm mt-1">{errors.annualInflation}</p>}
+          {errors.salarioAtual && <p className="text-red-500 text-sm mt-1">{errors.salarioAtual}</p>}
         </div>
 
         <div>
-          <label htmlFor="desiredIncome" className="block text-sm font-medium text-gray-700 mb-1">
-            Renda Mensal Desejada na Aposentadoria (R$)
+          <label htmlFor="expectativaAposentadoria" className="block text-sm font-medium text-gray-700 mb-1">
+            Expectativa de Vida (anos)
           </label>
           <input
-            id="desiredIncome"
+            id="expectativaAposentadoria"
             type="number"
-            value={desiredIncome}
-            onChange={(e) => setDesiredIncome(e.target.value)}
-            placeholder="Ex: 5000"
-            className="calculator-input"
-            min="1"
-            step="100"
-          />
-          {errors.desiredIncome && <p className="text-red-500 text-sm mt-1">{errors.desiredIncome}</p>}
-        </div>
-
-        <div>
-          <label htmlFor="lifeExpectancy" className="block text-sm font-medium text-gray-700 mb-1">
-            Expectativa de Vida
-          </label>
-          <input
-            id="lifeExpectancy"
-            type="number"
-            value={lifeExpectancy}
-            onChange={(e) => setLifeExpectancy(e.target.value)}
+            value={expectativaAposentadoria}
+            onChange={(e) => setExpectativaAposentadoria(e.target.value)}
             placeholder="Ex: 85"
             className="calculator-input"
             min="50"
-            max="120"
+            max="110"
           />
-          {errors.lifeExpectancy && <p className="text-red-500 text-sm mt-1">{errors.lifeExpectancy}</p>}
+          {errors.expectativaAposentadoria && <p className="text-red-500 text-sm mt-1">{errors.expectativaAposentadoria}</p>}
+        </div>
+
+        <div>
+          <label htmlFor="contribuicaoMensal" className="block text-sm font-medium text-gray-700 mb-1">
+            Contribuição Mensal Atual (R$)
+          </label>
+          <input
+            id="contribuicaoMensal"
+            type="number"
+            value={contribuicaoMensal}
+            onChange={(e) => setContribuicaoMensal(e.target.value)}
+            placeholder="Ex: 300"
+            className="calculator-input"
+            min="0"
+            step="0.01"
+          />
+          {errors.contribuicaoMensal && <p className="text-red-500 text-sm mt-1">{errors.contribuicaoMensal}</p>}
         </div>
       </div>
 
-      <button onClick={calculateRetirement} className="calculator-button">
+      <button onClick={calcularAposentadoria} className="calculator-button">
         Calcular Aposentadoria
       </button>
 
-      {result && (
+      {resultado && (
         <div className="calculator-result">
-          <h3 className="text-lg font-semibold mb-4">Resultado:</h3>
-
-          <div
-            className={`p-6 rounded-md border mb-6 ${
-              result.isOnTrack ? "bg-green-50 border-green-100" : "bg-red-50 border-red-100"
-            }`}
-          >
-            <div className="flex flex-col md:flex-row justify-between items-center">
-              <div className="text-center md:text-left mb-4 md:mb-0">
-                <p className="text-sm text-gray-600 mb-1">Total Estimado na Aposentadoria</p>
-                <p className={`text-3xl font-bold ${result.isOnTrack ? "text-green-700" : "text-red-700"}`}>
-                  {formatCurrency(result.totalRetirementSavings)}
-                </p>
-                <p className="text-sm text-gray-500 mt-1">
-                  Aos {result.retirementAge} anos ({result.yearsToRetirement} anos restantes)
-                </p>
+          <h3 className="text-lg font-semibold mb-4">Resultado da Simulação:</h3>
+          
+          <div className="space-y-4">
+            {resultado.elegivel ? (
+              <div className="bg-green-50 border border-green-200 rounded p-3 text-green-700">
+                <p className="font-medium">Você já tem direito à aposentadoria</p>
+                <p className="text-sm mt-1">Motivo: {resultado.motivoElegibilidade}</p>
               </div>
-
-              <div className="text-center mb-4 md:mb-0">
-                <p className="text-sm text-gray-600 mb-1">Renda Mensal Estimada</p>
-                <p
-                  className={`text-3xl font-bold ${
-                    result.monthlyIncomeFromSavings >= result.futureMonthlyIncome ? "text-green-700" : "text-red-700"
-                  }`}
-                >
-                  {formatCurrency(result.monthlyIncomeFromSavings)}
-                </p>
-                <p className="text-sm text-gray-500 mt-1">
-                  {result.monthlyIncomeFromSavings >= result.futureMonthlyIncome ? "Acima" : "Abaixo"} do objetivo de{" "}
-                  {formatCurrency(result.futureMonthlyIncome)}
-                </p>
-              </div>
-
-              <div className="text-center md:text-right">
-                <p className="text-sm text-gray-600 mb-1">Status do Planejamento</p>
-                <p className={`text-xl font-bold ${result.isOnTrack ? "text-green-700" : "text-red-700"}`}>
-                  {result.isOnTrack ? "No Caminho Certo" : "Ajustes Necessários"}
-                </p>
-                {!result.isOnTrack && (
-                  <p className="text-sm text-red-600 mt-1">
-                    Economize mais {formatCurrency(result.additionalMonthlySavingsNeeded)}/mês
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div className="bg-blue-50 p-4 rounded-md border border-blue-100">
-              <h4 className="font-medium mb-2">Detalhes da Projeção:</h4>
-              <ul className="text-sm space-y-1">
-                <li>
-                  <span className="font-medium">Anos até a aposentadoria:</span> {result.yearsToRetirement}
-                </li>
-                <li>
-                  <span className="font-medium">Duração da aposentadoria:</span>{" "}
-                  {result.lifeExpectancy - result.retirementAge} anos
-                </li>
-                <li>
-                  <span className="font-medium">Economias necessárias:</span> {formatCurrency(result.requiredSavings)}
-                </li>
-                <li>
-                  <span className="font-medium">Diferença de economias:</span>{" "}
-                  {formatCurrency(Math.abs(result.savingsGap))} {result.savingsGap >= 0 ? "(déficit)" : "(superávit)"}
-                </li>
-              </ul>
-            </div>
-
-            <div className="bg-purple-50 p-4 rounded-md border border-purple-100">
-              <h4 className="font-medium mb-2">Premissas Utilizadas:</h4>
-              <ul className="text-sm space-y-1">
-                <li>
-                  <span className="font-medium">Retorno anual:</span> {result.annualReturn}%
-                </li>
-                <li>
-                  <span className="font-medium">Inflação anual:</span> {result.annualInflation}%
-                </li>
-                <li>
-                  <span className="font-medium">Taxa de retirada:</span> 4% ao ano (Regra dos 4%)
-                </li>
-                <li>
-                  <span className="font-medium">Renda mensal desejada:</span> {formatCurrency(result.desiredIncome)}{" "}
-                  (hoje) / {formatCurrency(result.futureMonthlyIncome)} (na aposentadoria)
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="mb-6">
-            <h4 className="font-medium mb-2">Projeção de Economias por Ano:</h4>
-            <div className="overflow-x-auto">
-              <table className="min-w-full bg-white border border-gray-200">
-                <thead>
-                  <tr className="bg-gray-100">
-                    <th className="py-2 px-4 border-b text-left">Idade</th>
-                    <th className="py-2 px-4 border-b text-right">Economias Acumuladas</th>
-                    <th className="py-2 px-4 border-b text-center">Progresso</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {result.savingsByYear.map((yearData: any, index: number) => (
-                    <tr key={index} className="border-b hover:bg-gray-50">
-                      <td className="py-2 px-4">{yearData.year} anos</td>
-                      <td className="py-2 px-4 text-right">{formatCurrency(yearData.savings)}</td>
-                      <td className="py-2 px-4">
-                        <div className="w-full bg-gray-200 rounded-full h-2.5">
-                          <div
-                            className="bg-blue-600 h-2.5 rounded-full"
-                            style={{
-                              width: `${Math.min(100, (yearData.savings / result.requiredSavings) * 100)}%`,
-                            }}
-                          ></div>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div className="bg-yellow-50 p-4 rounded-md border border-yellow-100 mb-4">
-            <p className="text-sm font-medium text-yellow-800 mb-2">⚠️ Considerações Importantes</p>
-            <ul className="text-sm text-yellow-700 list-disc pl-5 space-y-1">
-              <li>
-                Esta calculadora fornece apenas estimativas baseadas nas premissas informadas. Os resultados reais podem
-                variar.
-              </li>
-              <li>
-                A "Regra dos 4%" sugere que você pode retirar 4% do seu patrimônio no primeiro ano de aposentadoria e
-                ajustar pela inflação nos anos seguintes, com baixo risco de esgotar seus recursos.
-              </li>
-              <li>
-                Considere diversificar seus investimentos e revisar seu plano de aposentadoria periodicamente com um
-                profissional financeiro.
-              </li>
-              <li>
-                Fatores como mudanças na legislação previdenciária, impostos e emergências pessoais podem afetar seu
-                planejamento.
-              </li>
-            </ul>
-          </div>
-
-          <div className="bg-blue-50 p-4 rounded-md border border-blue-100">
-            <p className="text-sm font-medium text-blue-800 mb-2">💡 Próximos Passos</p>
-            {result.isOnTrack ? (
-              <p className="text-sm text-blue-700">
-                Parabéns! Você está no caminho certo para atingir seus objetivos de aposentadoria. Continue com seu
-                plano atual de economias e considere aumentar suas contribuições sempre que possível para criar uma
-                margem de segurança adicional.
-              </p>
             ) : (
-              <p className="text-sm text-blue-700">
-                Para atingir seus objetivos de aposentadoria, considere: (1) Aumentar sua contribuição mensal para{" "}
-                {formatCurrency(result.monthlySavings + result.additionalMonthlySavingsNeeded)}; (2) Adiar sua
-                aposentadoria; (3) Reduzir sua renda desejada na aposentadoria; ou (4) Buscar investimentos com maior
-                retorno potencial (considerando seu perfil de risco).
-              </p>
+              <div>
+                <div className="grid grid-cols-2 gap-2">
+                  <span className="text-gray-600">Anos faltantes para aposentadoria:</span>
+                  <span className="font-medium">{resultado.anosFaltantes}</span>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2">
+                  <span className="text-gray-600">Pontos faltantes (idade + contribuição):</span>
+                  <span className="font-medium">{resultado.pontosFaltantes}</span>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2">
+                  <span className="text-gray-600">Idade projetada na aposentadoria:</span>
+                  <span className="font-medium">{resultado.idadeAposentadoria} anos</span>
+                </div>
+              </div>
             )}
+            
+            <div className="pt-3 border-t border-gray-200">
+              <h4 className="font-medium text-gray-700 mb-2">Projeção Financeira:</h4>
+              
+              <div className="grid grid-cols-2 gap-2 ml-2">
+                <span className="text-gray-600">Valor estimado da aposentadoria:</span>
+                <span className="font-medium">R$ {resultado.valorEstimadoAposentadoria}/mês</span>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-2 ml-2">
+                <span className="text-gray-600">Complemento necessário:</span>
+                <span className="font-medium">R$ {resultado.necessidadeComplemento}/mês</span>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-2 ml-2">
+                <span className="text-gray-600">Reserva financeira necessária:</span>
+                <span className="font-medium">R$ {resultado.reservaNecessaria}</span>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-2 ml-2">
+                <span className="text-gray-600">Contribuição mensal ideal:</span>
+                <span className="font-medium">R$ {resultado.valorMensalNecessario}/mês</span>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-2 ml-2 pt-2 border-t border-gray-200 mt-2">
+                <span className="text-gray-700 font-medium">Déficit mensal:</span>
+                <span className="font-bold text-red-600">R$ {resultado.deficitMensal}/mês</span>
+              </div>
+            </div>
+            
+            <div className="pt-3 border-t border-gray-200">
+              <h4 className="font-medium text-gray-700 mb-2">Expectativa:</h4>
+              
+              <div className="grid grid-cols-2 gap-2 ml-2">
+                <span className="text-gray-600">Anos vivendo com aposentadoria:</span>
+                <span className="font-medium">{resultado.anosAposAposentadoria} anos</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="mt-6 text-sm text-gray-500">
+            <p className="font-medium mb-1">Observações importantes:</p>
+            <ul className="list-disc list-inside space-y-1 ml-1">
+              <li>Esta simulação é baseada nas regras de 2023 da Previdência Social.</li>
+              <li>Para homens: idade mínima de 65 anos e 15 anos de contribuição.</li>
+              <li>Para mulheres: idade mínima de 62 anos e 15 anos de contribuição.</li>
+              <li>Regra de pontos: soma de idade + tempo de contribuição deve atingir 98 pontos (homens) ou 88 pontos (mulheres).</li>
+              <li>O valor estimado da aposentadoria considera aproximadamente 80% da média dos salários de contribuição.</li>
+              <li>A simulação da reserva financeira considera rendimento real de 0,5% ao mês após a aposentadoria.</li>
+            </ul>
           </div>
         </div>
       )}

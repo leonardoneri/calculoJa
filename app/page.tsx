@@ -2,11 +2,12 @@ import type { Metadata } from "next"
 import { getAllCalculators } from "@/lib/calculators"
 import CalculatorCard from "@/components/calculators/CalculatorCard"
 import { CalculatorCategory } from "@/lib/types"
+import Image from "next/image"
 
 export const metadata: Metadata = {
-  title: "Portal de Calculadoras Especializadas - Ferramentas de cálculo para todas as necessidades",
+  title: "CálculoJá - Ferramentas de cálculo para todas as necessidades",
   description:
-    "Acesse mais de 25 calculadoras especializadas gratuitas: IMC, juros compostos, conversão de moedas e muito mais. Resultados instantâneos e explicações detalhadas.",
+    "CálculoJá oferece mais de 25 calculadoras especializadas gratuitas: IMC, juros compostos, conversão de moedas e muito mais. Resultados instantâneos e explicações detalhadas.",
 }
 
 export default async function Home() {
@@ -16,7 +17,16 @@ export default async function Home() {
   return (
     <div className="space-y-12">
       <section className="text-center py-12 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
-        <h1 className="text-4xl font-bold text-gray-800 mb-4">Portal de Calculadoras Especializadas</h1>
+        <div className="flex justify-center mb-6">
+          <Image 
+            src="/calculoja-logo.svg" 
+            alt="CálculoJá" 
+            width={280} 
+            height={80} 
+            className="h-16 w-auto" 
+            priority
+          />
+        </div>
         <p className="text-xl text-gray-600 max-w-3xl mx-auto">
           Mais de 25 calculadoras gratuitas para facilitar seus cálculos diários, com resultados instantâneos e
           explicações detalhadas.

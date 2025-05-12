@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Menu, X, Search } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { CalculatorCategory } from "@/lib/types"
+import Image from "next/image"
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -24,8 +25,15 @@ export default function Header() {
     <header className="bg-white shadow-sm sticky top-0 z-10">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
-          <Link href="/" className="text-xl font-bold text-blue-600">
-            Calculadoras Especializadas
+          <Link href="/" className="flex items-center">
+            <Image 
+              src="/calculoja-logo.svg" 
+              alt="CálculoJá" 
+              width={140} 
+              height={40} 
+              className="h-10 w-auto mr-2" 
+              priority
+            />
           </Link>
 
           {/* Desktop Navigation */}

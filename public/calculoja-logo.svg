@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 260">
+  <!-- Calculadora -->
+  <rect x="64" y="50" width="180" height="200" rx="24" fill="#0078D7" />
+  
+  <!-- Botões da calculadora -->
+  <rect x="90" y="120" width="30" height="30" rx="5" fill="#ffffff" />
+  <rect x="140" y="120" width="30" height="30" rx="5" fill="#ffffff" />
+  <rect x="190" y="120" width="30" height="30" rx="5" fill="#ffffff" />
+  
+  <rect x="90" y="160" width="30" height="30" rx="5" fill="#ffffff" />
+  <rect x="140" y="160" width="30" height="30" rx="5" fill="#ffffff" />
+  <rect x="190" y="160" width="30" height="30" rx="5" fill="#ffffff" />
+  
+  <rect x="90" y="200" width="30" height="30" rx="5" fill="#ffffff" />
+  <rect x="140" y="200" width="30" height="30" rx="5" fill="#ffffff" />
+  <rect x="190" y="200" width="30" height="30" rx="5" fill="#ffffff" />
+  
+  <!-- Check mark -->
+  <path d="M270 70 L210 130 L180 100" stroke="#30C165" stroke-width="25" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+  
+  <!-- Text "CálculoJá" -->
+  <text x="320" y="150" font-family="Arial, sans-serif" font-size="100" font-weight="bold" fill="#003366">CálculoJá</text>
+</svg> 
