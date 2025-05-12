@@ -79,6 +79,15 @@ export default function Error({
               </Link>
             </div>
           </div>
+          
+          <div className="bg-gray-50 p-5 rounded-lg border border-gray-200 md:col-span-2">
+            <h3 className="text-xl font-semibold mb-3 text-blue-700">Negócios</h3>
+            <div className="flex flex-col space-y-2">
+              <Link href="/categoria/business" className="text-blue-600 hover:text-blue-800 hover:underline py-1">
+                Ver calculadoras de negócios
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </div>
