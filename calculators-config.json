@@ -28,6 +28,20 @@
       }
     },
     {
+      "id": "amortizacao",
+      "slug": "amortizacao",
+      "title": "Calculadora de Amortização",
+      "description": "Calcule o plano de amortização de empréstimos e financiamentos, com detalhes das parcelas.",
+      "category": "FINANCE",
+      "type": "amortizacao",
+      "icon": "📉",
+      "keywords": ["amortização", "empréstimo", "financiamento", "parcelas", "juros", "finanças", "prestações"],
+      "config": {
+        "decimalPlaces": 2,
+        "methods": ["price", "sac"]
+      }
+    },
+    {
       "id": "conversao-moedas",
       "slug": "conversao-moedas",
       "title": "Conversor de Moedas",
@@ -39,6 +53,20 @@
       "config": {
         "updateFrequency": "daily",
         "decimalPlaces": 2
+      }
+    },
+    {
+      "id": "conversao-temperatura",
+      "slug": "conversao-temperatura",
+      "title": "Conversor de Temperatura",
+      "description": "Converta temperaturas entre Celsius, Fahrenheit e Kelvin de forma rápida e precisa.",
+      "category": "CONVERSION",
+      "type": "conversao-temperatura",
+      "icon": "🌡️",
+      "keywords": ["temperatura", "celsius", "fahrenheit", "kelvin", "conversão", "meteorologia", "clima"],
+      "config": {
+        "decimalPlaces": 2,
+        "units": ["celsius", "fahrenheit", "kelvin"]
       }
     },
     {
@@ -67,6 +95,34 @@
       "config": {
         "decimalPlaces": 2,
         "includesTax": true
+      }
+    },
+    {
+      "id": "roi",
+      "slug": "roi",
+      "title": "Calculadora de ROI",
+      "description": "Calcule o Retorno sobre Investimento (ROI) para avaliar o desempenho de seus investimentos.",
+      "category": "FINANCE",
+      "type": "roi",
+      "icon": "📈",
+      "keywords": ["roi", "retorno sobre investimento", "lucratividade", "investimento", "rentabilidade", "finanças"],
+      "config": {
+        "decimalPlaces": 2,
+        "showPercentage": true
+      }
+    },
+    {
+      "id": "valor-futuro",
+      "slug": "valor-futuro",
+      "title": "Calculadora de Valor Futuro",
+      "description": "Calcule quanto um investimento valerá no futuro considerando diferentes cenários de juros.",
+      "category": "FINANCE",
+      "type": "valor-futuro",
+      "icon": "⏱️",
+      "keywords": ["valor futuro", "investimento", "juros", "poupança", "rendimento", "aplicação", "longo prazo"],
+      "config": {
+        "decimalPlaces": 2,
+        "inflationAdjustment": true
       }
     }
   ]

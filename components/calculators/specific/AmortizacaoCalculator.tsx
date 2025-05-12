@@ -12,42 +12,45 @@ interface AmortizacaoCalculatorProps {
 const amortizacaoSchema = z.object({
   loanAmount: z.number().positive("O valor do empréstimo deve ser maior que zero"),
   interestRate: z.number().nonnegative("A taxa de juros deve ser maior ou igual a zero"),
-  loanTerm: z.number().int().positive("O prazo deve ser um número inteiro positivo"),
-  amortizationType: z.enum(["price", "sac"], {
-    errorMap: () => ({ message: "Selecione o sistema de amortização" }),
+  loanTerm: z.number().positive("O prazo deve ser maior que zero"),
+  method: z.enum(["price", "sac"], {
+    invalid_type_error: "Método de amortização inválido",
   }),
 })
 
-export default function AmortizacaoCalculator({ onInputChange, onCalculate, config }: AmortizacaoCalculatorProps) {
+export default function AmortizacaoCalculator({
+  onInputChange,
+  onCalculate,
+  config,
+}: AmortizacaoCalculatorProps) {
   const [loanAmount, setLoanAmount] = useState<string>("")
   const [interestRate, setInterestRate] = useState<string>("")
   const [loanTerm, setLoanTerm] = useState<string>("")
-  const [termType, setTermType] = useState<"months" | "years">("months")
-  const [amortizationType, setAmortizationType] = useState<"price" | "sac">("price")
+  const [termType, setTermType] = useState<"months" | "years">("years")
+  const [method, setMethod] = useState<"price" | "sac">("price")
   const [result, setResult] = useState<any>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [showFullTable, setShowFullTable] = useState<boolean>(false)
+  const [showAmortizationTable, setShowAmortizationTable] = useState<boolean>(false)
 
   const validateInput = () => {
     try {
-      const loanAmountNum = Number.parseFloat(loanAmount)
-      const interestRateNum = Number.parseFloat(interestRate)
-      let loanTermNum = Number.parseInt(loanTerm)
-
-      // Convert years to months if necessary
-      if (termType === "years") {
-        loanTermNum = loanTermNum * 12
-      }
+      const loanAmountNum = Number.parseFloat(loanAmount) || 0
+      const interestRateNum = Number.parseFloat(interestRate) || 0
+      const loanTermNum = Number.parseInt(loanTerm) || 0
 
       amortizacaoSchema.parse({
         loanAmount: loanAmountNum,
         interestRate: interestRateNum,
         loanTerm: loanTermNum,
-        amortizationType,
+        method,
       })
 
       setErrors({})
-      return { loanAmountNum, interestRateNum, loanTermNum }
+      return {
+        loanAmountNum,
+        interestRateNum,
+        loanTermNum,
+      }
     } catch (error) {
       if (error instanceof z.ZodError) {
         const newErrors: Record<string, string> = {}
@@ -68,92 +71,93 @@ export default function AmortizacaoCalculator({ onInputChange, onCalculate, conf
 
     const { loanAmountNum, interestRateNum, loanTermNum } = validatedInput
 
-    // Convert annual interest rate to monthly
-    const monthlyInterestRate = interestRateNum / 100 / 12
+    // Convert annual rate to monthly if period is in months
+    const monthlyRate = interestRateNum / 100 / 12
 
-    let monthlyPayment = 0
-    let totalInterest = 0
+    // Convert period to months if it's in years
+    const totalMonths = termType === "years" ? loanTermNum * 12 : loanTermNum
+
     let totalPayment = 0
-    const amortizationTable = []
+    let totalInterest = 0
+    const amortizationSchedule = []
 
-    if (amortizationType === "price") {
-      // Price Table (constant payment)
-      monthlyPayment = (loanAmountNum * monthlyInterestRate) / (1 - Math.pow(1 + monthlyInterestRate, -loanTermNum))
-
+    if (method === "price") {
+      // Sistema Price (parcelas iguais)
+      const monthlyPayment = (loanAmountNum * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -totalMonths))
+      
       let remainingBalance = loanAmountNum
-      for (let i = 1; i <= loanTermNum; i++) {
-        const interestPayment = remainingBalance * monthlyInterestRate
+      for (let month = 1; month <= totalMonths; month++) {
+        const interestPayment = remainingBalance * monthlyRate
         const principalPayment = monthlyPayment - interestPayment
         remainingBalance -= principalPayment
 
+        totalPayment += monthlyPayment
         totalInterest += interestPayment
 
-        amortizationTable.push({
-          period: i,
+        amortizationSchedule.push({
+          month,
           payment: monthlyPayment,
-          principalPayment,
-          interestPayment,
-          remainingBalance: Math.max(0, remainingBalance), // Avoid negative values due to rounding
+          principal: principalPayment,
+          interest: interestPayment,
+          balance: Math.max(0, remainingBalance), // Evita saldo negativo em caso de arredondamento
         })
       }
-    } else {
-      // SAC (constant amortization)
-      const principalPayment = loanAmountNum / loanTermNum
 
+      const calculationResult = {
+        monthlyPayment: Number.parseFloat(monthlyPayment.toFixed(2)),
+        totalPayment: Number.parseFloat(totalPayment.toFixed(2)),
+        totalInterest: Number.parseFloat(totalInterest.toFixed(2)),
+        amortizationSchedule,
+        method: "price",
+      }
+
+      setResult(calculationResult)
+      onCalculate(calculationResult)
+    } else if (method === "sac") {
+      // Sistema SAC (amortização constante)
+      const principalPayment = loanAmountNum / totalMonths
+      
       let remainingBalance = loanAmountNum
-      for (let i = 1; i <= loanTermNum; i++) {
-        const interestPayment = remainingBalance * monthlyInterestRate
-        const payment = principalPayment + interestPayment
+      for (let month = 1; month <= totalMonths; month++) {
+        const interestPayment = remainingBalance * monthlyRate
+        const monthlyPayment = principalPayment + interestPayment
         remainingBalance -= principalPayment
 
+        totalPayment += monthlyPayment
         totalInterest += interestPayment
-        totalPayment += payment
 
-        amortizationTable.push({
-          period: i,
-          payment,
-          principalPayment,
-          interestPayment,
-          remainingBalance: Math.max(0, remainingBalance), // Avoid negative values due to rounding
+        amortizationSchedule.push({
+          month,
+          payment: monthlyPayment,
+          principal: principalPayment,
+          interest: interestPayment,
+          balance: Math.max(0, remainingBalance), // Evita saldo negativo em caso de arredondamento
         })
       }
 
-      // For SAC, monthly payment is the first payment (highest)
-      monthlyPayment = amortizationTable[0].payment
-    }
+      const calculationResult = {
+        principalPayment: Number.parseFloat(principalPayment.toFixed(2)),
+        initialPayment: Number.parseFloat(amortizationSchedule[0].payment.toFixed(2)),
+        finalPayment: Number.parseFloat(amortizationSchedule[amortizationSchedule.length - 1].payment.toFixed(2)),
+        totalPayment: Number.parseFloat(totalPayment.toFixed(2)),
+        totalInterest: Number.parseFloat(totalInterest.toFixed(2)),
+        amortizationSchedule,
+        method: "sac",
+      }
 
-    if (amortizationType === "price") {
-      totalPayment = monthlyPayment * loanTermNum
+      setResult(calculationResult)
+      onCalculate(calculationResult)
     }
-
-    const calculationResult = {
-      loanAmount: loanAmountNum,
-      interestRate: interestRateNum,
-      loanTerm: loanTermNum,
-      monthlyPayment: Number.parseFloat(monthlyPayment.toFixed(2)),
-      totalInterest: Number.parseFloat(totalInterest.toFixed(2)),
-      totalPayment: Number.parseFloat(totalPayment.toFixed(2)),
-      amortizationType,
-      amortizationTable: amortizationTable.map((item) => ({
-        period: item.period,
-        payment: Number.parseFloat(item.payment.toFixed(2)),
-        principalPayment: Number.parseFloat(item.principalPayment.toFixed(2)),
-        interestPayment: Number.parseFloat(item.interestPayment.toFixed(2)),
-        remainingBalance: Number.parseFloat(item.remainingBalance.toFixed(2)),
-      })),
-    }
-
-    setResult(calculationResult)
 
     // Call parent callbacks
     onInputChange("loanAmount", loanAmountNum)
     onInputChange("interestRate", interestRateNum)
     onInputChange("loanTerm", loanTermNum)
-    onInputChange("amortizationType", amortizationType)
-    onCalculate(calculationResult)
+    onInputChange("termType", termType)
+    onInputChange("method", method)
   }
 
-  // Calculate automatically when inputs change
+  // Calculate automatically when all inputs are valid
   useEffect(() => {
     if (loanAmount && interestRate && loanTerm) {
       const loanAmountNum = Number.parseFloat(loanAmount)
@@ -171,7 +175,7 @@ export default function AmortizacaoCalculator({ onInputChange, onCalculate, conf
         calculateAmortization()
       }
     }
-  }, [loanAmount, interestRate, loanTerm, termType, amortizationType])
+  }, [loanAmount, interestRate, loanTerm, termType, method])
 
   // Format currency
   const formatCurrency = (value: number) => {
@@ -193,7 +197,7 @@ export default function AmortizacaoCalculator({ onInputChange, onCalculate, conf
             type="number"
             value={loanAmount}
             onChange={(e) => setLoanAmount(e.target.value)}
-            placeholder="Ex: 50000"
+            placeholder="Ex: 100000"
             className="calculator-input"
             min="1"
             step="0.01"
@@ -210,7 +214,7 @@ export default function AmortizacaoCalculator({ onInputChange, onCalculate, conf
             type="number"
             value={interestRate}
             onChange={(e) => setInterestRate(e.target.value)}
-            placeholder="Ex: 10"
+            placeholder="Ex: 12"
             className="calculator-input"
             min="0"
             step="0.01"
@@ -228,7 +232,7 @@ export default function AmortizacaoCalculator({ onInputChange, onCalculate, conf
               type="number"
               value={loanTerm}
               onChange={(e) => setLoanTerm(e.target.value)}
-              placeholder="Ex: 36"
+              placeholder="Ex: 5"
               className="calculator-input rounded-r-none flex-grow"
               min="1"
               step="1"
@@ -238,27 +242,27 @@ export default function AmortizacaoCalculator({ onInputChange, onCalculate, conf
               onChange={(e) => setTermType(e.target.value as "months" | "years")}
               className="border border-l-0 border-gray-300 rounded-r-md p-2 bg-gray-50"
             >
-              <option value="months">Meses</option>
               <option value="years">Anos</option>
+              <option value="months">Meses</option>
             </select>
           </div>
           {errors.loanTerm && <p className="text-red-500 text-sm mt-1">{errors.loanTerm}</p>}
         </div>
 
         <div>
-          <label htmlFor="amortizationType" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="method" className="block text-sm font-medium text-gray-700 mb-1">
             Sistema de Amortização
           </label>
           <select
-            id="amortizationType"
-            value={amortizationType}
-            onChange={(e) => setAmortizationType(e.target.value as "price" | "sac")}
+            id="method"
+            value={method}
+            onChange={(e) => setMethod(e.target.value as "price" | "sac")}
             className="calculator-input"
           >
-            <option value="price">Tabela Price (parcelas fixas)</option>
-            <option value="sac">SAC (amortização constante)</option>
+            <option value="price">Price (Parcelas Fixas)</option>
+            <option value="sac">SAC (Amortização Constante)</option>
           </select>
-          {errors.amortizationType && <p className="text-red-500 text-sm mt-1">{errors.amortizationType}</p>}
+          {errors.method && <p className="text-red-500 text-sm mt-1">{errors.method}</p>}
         </div>
       </div>
 
@@ -270,83 +274,102 @@ export default function AmortizacaoCalculator({ onInputChange, onCalculate, conf
         <div className="calculator-result">
           <h3 className="text-lg font-semibold mb-4">Resultado:</h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div className="bg-blue-50 p-4 rounded-md border border-blue-100">
-              <p className="text-sm text-gray-600 mb-1">
-                {amortizationType === "price" ? "Valor da Parcela" : "Primeira Parcela"}
-              </p>
-              <p className="text-xl font-bold text-blue-700">{formatCurrency(result.monthlyPayment)}</p>
-              <p className="text-xs text-gray-500 mt-1">
-                {amortizationType === "sac" && "As parcelas diminuem ao longo do tempo"}
-              </p>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {method === "price" ? (
+              <div className="bg-blue-50 p-4 rounded-md border border-blue-100">
+                <p className="text-sm text-gray-600 mb-1">Valor da Parcela</p>
+                <p className="text-xl font-bold text-blue-700">{formatCurrency(result.monthlyPayment)}</p>
+              </div>
+            ) : (
+              <>
+                <div className="bg-blue-50 p-4 rounded-md border border-blue-100">
+                  <p className="text-sm text-gray-600 mb-1">Primeira Parcela</p>
+                  <p className="text-xl font-bold text-blue-700">{formatCurrency(result.initialPayment)}</p>
+                </div>
+                <div className="bg-blue-50 p-4 rounded-md border border-blue-100">
+                  <p className="text-sm text-gray-600 mb-1">Última Parcela</p>
+                  <p className="text-xl font-bold text-blue-700">{formatCurrency(result.finalPayment)}</p>
+                </div>
+              </>
+            )}
 
             <div className="bg-green-50 p-4 rounded-md border border-green-100">
-              <p className="text-sm text-gray-600 mb-1">Total de Juros</p>
-              <p className="text-xl font-bold text-green-700">{formatCurrency(result.totalInterest)}</p>
+              <p className="text-sm text-gray-600 mb-1">Total Pago</p>
+              <p className="text-xl font-bold text-green-700">{formatCurrency(result.totalPayment)}</p>
             </div>
 
             <div className="bg-purple-50 p-4 rounded-md border border-purple-100">
-              <p className="text-sm text-gray-600 mb-1">Custo Total</p>
-              <p className="text-xl font-bold text-purple-700">{formatCurrency(result.totalPayment)}</p>
-              <p className="text-xs text-gray-500 mt-1">Principal + Juros</p>
+              <p className="text-sm text-gray-600 mb-1">Total em Juros</p>
+              <p className="text-xl font-bold text-purple-700">{formatCurrency(result.totalInterest)}</p>
             </div>
           </div>
 
-          <div className="mb-4">
-            <h4 className="font-medium mb-2">Tabela de Amortização:</h4>
-            <div className="overflow-x-auto">
-              <table className="min-w-full bg-white border border-gray-200">
-                <thead>
-                  <tr className="bg-gray-100">
-                    <th className="py-2 px-4 border-b text-left">Parcela</th>
-                    <th className="py-2 px-4 border-b text-right">Valor da Parcela</th>
-                    <th className="py-2 px-4 border-b text-right">Amortização</th>
-                    <th className="py-2 px-4 border-b text-right">Juros</th>
-                    <th className="py-2 px-4 border-b text-right">Saldo Devedor</th>
+          <div className="mt-6">
+            <button 
+              onClick={() => setShowAmortizationTable(!showAmortizationTable)} 
+              className="text-blue-600 hover:text-blue-800 font-medium flex items-center"
+            >
+              {showAmortizationTable ? "Ocultar Tabela de Amortização" : "Exibir Tabela de Amortização"}
+              <svg 
+                className={`ml-1 h-5 w-5 transition-transform ${showAmortizationTable ? "rotate-180" : ""}`}
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          </div>
+
+          {showAmortizationTable && (
+            <div className="mt-4 overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Parcela
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Valor da Parcela
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Amortização
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Juros
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Saldo Devedor
+                    </th>
                   </tr>
                 </thead>
-                <tbody>
-                  {(showFullTable ? result.amortizationTable : result.amortizationTable.slice(0, 12)).map(
-                    (row: any) => (
-                      <tr key={row.period} className="border-b hover:bg-gray-50">
-                        <td className="py-2 px-4">{row.period}</td>
-                        <td className="py-2 px-4 text-right">{formatCurrency(row.payment)}</td>
-                        <td className="py-2 px-4 text-right">{formatCurrency(row.principalPayment)}</td>
-                        <td className="py-2 px-4 text-right">{formatCurrency(row.interestPayment)}</td>
-                        <td className="py-2 px-4 text-right">{formatCurrency(row.remainingBalance)}</td>
-                      </tr>
-                    ),
-                  )}
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {result.amortizationSchedule.slice(0, 24).map((row: any) => (
+                    <tr key={row.month}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.month}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {formatCurrency(row.payment)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {formatCurrency(row.principal)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {formatCurrency(row.interest)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {formatCurrency(row.balance)}
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
+              {result.amortizationSchedule.length > 24 && (
+                <p className="text-sm text-gray-500 mt-4">
+                  Mostrando as primeiras 24 parcelas de um total de {result.amortizationSchedule.length}.
+                </p>
+              )}
             </div>
-            {result.amortizationTable.length > 12 && !showFullTable && (
-              <button
-                onClick={() => setShowFullTable(true)}
-                className="mt-2 text-blue-600 hover:text-blue-800 text-sm font-medium"
-              >
-                Mostrar tabela completa ({result.amortizationTable.length} parcelas)
-              </button>
-            )}
-            {showFullTable && (
-              <button
-                onClick={() => setShowFullTable(false)}
-                className="mt-2 text-blue-600 hover:text-blue-800 text-sm font-medium"
-              >
-                Mostrar menos
-              </button>
-            )}
-          </div>
-
-          <div className="bg-yellow-50 p-4 rounded-md border border-yellow-100">
-            <p className="text-sm font-medium text-yellow-800 mb-2">⚠️ Aviso Importante</p>
-            <p className="text-sm text-yellow-700">
-              Esta calculadora fornece apenas uma estimativa. As condições reais de empréstimos podem variar de acordo
-              com a instituição financeira, seu perfil de crédito e outros fatores. Consulte um profissional financeiro
-              antes de tomar decisões.
-            </p>
-          </div>
+          )}
         </div>
       )}
     </div>

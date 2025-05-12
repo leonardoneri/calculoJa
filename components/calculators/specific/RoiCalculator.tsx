@@ -10,52 +10,41 @@ interface RoiCalculatorProps {
 }
 
 const roiSchema = z.object({
-  initialInvestment: z.number().nonnegative("O investimento inicial deve ser maior ou igual a zero"),
-  annualRevenue: z.number().nonnegative("A receita anual deve ser maior ou igual a zero"),
-  annualCosts: z.number().nonnegative("Os custos anuais devem ser maiores ou iguais a zero"),
-  projectDuration: z
-    .number()
-    .int()
-    .positive("A duração do projeto deve ser um número inteiro positivo")
-    .max(50, "A duração do projeto deve ser menor ou igual a 50 anos"),
-  discountRate: z
-    .number()
-    .nonnegative("A taxa de desconto deve ser maior ou igual a zero")
-    .max(100, "A taxa de desconto deve ser menor ou igual a 100%"),
+  investmentCost: z.number().positive("O custo do investimento deve ser maior que zero"),
+  returnAmount: z.number().nonnegative("O retorno deve ser maior ou igual a zero"),
+  timePeriod: z.number().optional(),
 })
 
-export default function RoiCalculator({ onInputChange, onCalculate, config }: RoiCalculatorProps) {
-  const [initialInvestment, setInitialInvestment] = useState<string>("")
-  const [annualRevenue, setAnnualRevenue] = useState<string>("")
-  const [annualCosts, setAnnualCosts] = useState<string>("")
-  const [projectDuration, setProjectDuration] = useState<string>("5")
-  const [discountRate, setDiscountRate] = useState<string>("10")
+export default function RoiCalculator({
+  onInputChange,
+  onCalculate,
+  config,
+}: RoiCalculatorProps) {
+  const [investmentCost, setInvestmentCost] = useState<string>("")
+  const [returnAmount, setReturnAmount] = useState<string>("")
+  const [timePeriod, setTimePeriod] = useState<string>("")
+  const [periodUnit, setPeriodUnit] = useState<"months" | "years">("years")
   const [result, setResult] = useState<any>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [includeTime, setIncludeTime] = useState<boolean>(false)
 
   const validateInput = () => {
     try {
-      const initialInvestmentNum = Number.parseFloat(initialInvestment)
-      const annualRevenueNum = Number.parseFloat(annualRevenue)
-      const annualCostsNum = Number.parseFloat(annualCosts)
-      const projectDurationNum = Number.parseInt(projectDuration)
-      const discountRateNum = Number.parseFloat(discountRate)
+      const investmentCostNum = Number.parseFloat(investmentCost) || 0
+      const returnAmountNum = Number.parseFloat(returnAmount) || 0
+      const timePeriodNum = includeTime ? Number.parseFloat(timePeriod) || 0 : undefined
 
       roiSchema.parse({
-        initialInvestment: initialInvestmentNum,
-        annualRevenue: annualRevenueNum,
-        annualCosts: annualCostsNum,
-        projectDuration: projectDurationNum,
-        discountRate: discountRateNum,
+        investmentCost: investmentCostNum,
+        returnAmount: returnAmountNum,
+        timePeriod: timePeriodNum,
       })
 
       setErrors({})
       return {
-        initialInvestmentNum,
-        annualRevenueNum,
-        annualCostsNum,
-        projectDurationNum,
-        discountRateNum,
+        investmentCostNum,
+        returnAmountNum,
+        timePeriodNum,
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -71,182 +60,68 @@ export default function RoiCalculator({ onInputChange, onCalculate, config }: Ro
     }
   }
 
-  const calculateROI = () => {
+  const calculateRoi = () => {
     const validatedInput = validateInput()
     if (!validatedInput) return
 
-    const { initialInvestmentNum, annualRevenueNum, annualCostsNum, projectDurationNum, discountRateNum } =
-      validatedInput
+    const { investmentCostNum, returnAmountNum, timePeriodNum } = validatedInput
 
-    // Calculate annual profit
-    const annualProfit = annualRevenueNum - annualCostsNum
+    // Calcular o ganho líquido
+    const netReturn = returnAmountNum - investmentCostNum
 
-    // Calculate simple ROI
-    const totalProfit = annualProfit * projectDurationNum
-    const simpleROI = (totalProfit / initialInvestmentNum) * 100
+    // Calcular o ROI simples (percentual)
+    const roi = (netReturn / investmentCostNum) * 100
 
-    // Calculate payback period
-    const paybackPeriod = initialInvestmentNum / annualProfit
-
-    // Calculate NPV and IRR
-    const discountRateDecimal = discountRateNum / 100
-    let npv = -initialInvestmentNum
-
-    // Cash flows for IRR calculation
-    const cashFlows = [-initialInvestmentNum]
-
-    // Calculate NPV and prepare cash flows for IRR
-    for (let year = 1; year <= projectDurationNum; year++) {
-      const discountFactor = 1 / Math.pow(1 + discountRateDecimal, year)
-      npv += annualProfit * discountFactor
-      cashFlows.push(annualProfit)
-    }
-
-    // Calculate IRR using Newton-Raphson method
-    const irr = calculateIRR(cashFlows)
-
-    // Calculate ROI with discount rate
-    const discountedROI = (npv / initialInvestmentNum) * 100
-
-    // Calculate profitability index
-    const presentValueOfCashFlows = npv + initialInvestmentNum
-    const profitabilityIndex = presentValueOfCashFlows / initialInvestmentNum
-
-    // Calculate yearly breakdown
-    const yearlyBreakdown = []
-    let cumulativeProfit = -initialInvestmentNum
-    let breakEvenYear = null
-
-    for (let year = 1; year <= projectDurationNum; year++) {
-      const discountFactor = 1 / Math.pow(1 + discountRateDecimal, year)
-      const discountedProfit = annualProfit * discountFactor
-      cumulativeProfit += discountedProfit
-
-      yearlyBreakdown.push({
-        year,
-        annualProfit,
-        discountedProfit: Number.parseFloat(discountedProfit.toFixed(2)),
-        cumulativeProfit: Number.parseFloat(cumulativeProfit.toFixed(2)),
-      })
-
-      // Determine break-even year
-      if (breakEvenYear === null && cumulativeProfit >= 0) {
-        breakEvenYear = year
-      }
+    // Se o período for especificado, calcular o ROI anualizado
+    let annualizedRoi = roi
+    
+    if (includeTime && timePeriodNum && timePeriodNum > 0) {
+      // Converter para anos se necessário
+      const timeInYears = periodUnit === "months" ? timePeriodNum / 12 : timePeriodNum
+      
+      // Fórmula para ROI anualizado: ((1 + ROI/100)^(1/timeInYears) - 1) * 100
+      annualizedRoi = (Math.pow(1 + roi / 100, 1 / timeInYears) - 1) * 100
     }
 
     const calculationResult = {
-      initialInvestment: initialInvestmentNum,
-      annualRevenue: annualRevenueNum,
-      annualCosts: annualCostsNum,
-      annualProfit,
-      projectDuration: projectDurationNum,
-      discountRate: discountRateNum,
-      simpleROI: Number.parseFloat(simpleROI.toFixed(2)),
-      paybackPeriod: Number.parseFloat(paybackPeriod.toFixed(2)),
-      npv: Number.parseFloat(npv.toFixed(2)),
-      irr: irr ? Number.parseFloat((irr * 100).toFixed(2)) : null,
-      discountedROI: Number.parseFloat(discountedROI.toFixed(2)),
-      profitabilityIndex: Number.parseFloat(profitabilityIndex.toFixed(2)),
-      yearlyBreakdown,
-      breakEvenYear,
-      isPositiveNPV: npv > 0,
+      investmentCost: investmentCostNum,
+      returnAmount: returnAmountNum,
+      netReturn: Number.parseFloat(netReturn.toFixed(2)),
+      roi: Number.parseFloat(roi.toFixed(2)),
+      annualizedRoi: Number.parseFloat(annualizedRoi.toFixed(2)),
+      includeTime,
+      timePeriod: timePeriodNum,
+      periodUnit,
     }
 
     setResult(calculationResult)
 
     // Call parent callbacks
-    onInputChange("initialInvestment", initialInvestmentNum)
-    onInputChange("annualRevenue", annualRevenueNum)
-    onInputChange("annualCosts", annualCostsNum)
-    onInputChange("projectDuration", projectDurationNum)
-    onInputChange("discountRate", discountRateNum)
+    onInputChange("investmentCost", investmentCostNum)
+    onInputChange("returnAmount", returnAmountNum)
+    onInputChange("timePeriod", timePeriodNum)
+    onInputChange("periodUnit", periodUnit)
     onCalculate(calculationResult)
   }
 
-  // Calculate IRR using Newton-Raphson method
-  const calculateIRR = (cashFlows: number[]): number | null => {
-    // Function to calculate NPV given a rate
-    const calculateNPV = (rate: number): number => {
-      let npv = cashFlows[0]
-      for (let i = 1; i < cashFlows.length; i++) {
-        npv += cashFlows[i] / Math.pow(1 + rate, i)
-      }
-      return npv
-    }
-
-    // Function to calculate the derivative of NPV
-    const calculateNPVDerivative = (rate: number): number => {
-      let derivative = 0
-      for (let i = 1; i < cashFlows.length; i++) {
-        derivative -= (i * cashFlows[i]) / Math.pow(1 + rate, i + 1)
-      }
-      return derivative
-    }
-
-    // Check if IRR calculation is possible
-    let negativeFound = false
-    let positiveFound = false
-    for (const flow of cashFlows) {
-      if (flow < 0) negativeFound = true
-      if (flow > 0) positiveFound = true
-    }
-    if (!negativeFound || !positiveFound) return null
-
-    // Newton-Raphson method
-    let rate = 0.1 // Initial guess
-    const maxIterations = 100
-    const tolerance = 0.0000001
-
-    for (let i = 0; i < maxIterations; i++) {
-      const npv = calculateNPV(rate)
-      if (Math.abs(npv) < tolerance) {
-        return rate
-      }
-
-      const derivative = calculateNPVDerivative(rate)
-      if (derivative === 0) break
-
-      const newRate = rate - npv / derivative
-      if (Math.abs(newRate - rate) < tolerance) {
-        return newRate
-      }
-
-      rate = newRate
-    }
-
-    // If no convergence or IRR is outside reasonable bounds
-    if (rate < -1 || rate > 1) return null
-    return rate
-  }
-
-  // Calculate automatically when inputs change
+  // Calculate automatically when all inputs are valid
   useEffect(() => {
-    if (initialInvestment && annualRevenue && annualCosts && projectDuration && discountRate) {
-      const initialInvestmentNum = Number.parseFloat(initialInvestment)
-      const annualRevenueNum = Number.parseFloat(annualRevenue)
-      const annualCostsNum = Number.parseFloat(annualCosts)
-      const projectDurationNum = Number.parseInt(projectDuration)
-      const discountRateNum = Number.parseFloat(discountRate)
+    if (investmentCost && returnAmount && (!includeTime || timePeriod)) {
+      const investmentCostNum = Number.parseFloat(investmentCost)
+      const returnAmountNum = Number.parseFloat(returnAmount)
+      const timePeriodNum = includeTime ? Number.parseFloat(timePeriod) : undefined
 
       if (
-        !isNaN(initialInvestmentNum) &&
-        !isNaN(annualRevenueNum) &&
-        !isNaN(annualCostsNum) &&
-        !isNaN(projectDurationNum) &&
-        !isNaN(discountRateNum) &&
-        initialInvestmentNum >= 0 &&
-        annualRevenueNum >= 0 &&
-        annualCostsNum >= 0 &&
-        projectDurationNum > 0 &&
-        projectDurationNum <= 50 &&
-        discountRateNum >= 0 &&
-        discountRateNum <= 100
+        !isNaN(investmentCostNum) &&
+        !isNaN(returnAmountNum) &&
+        investmentCostNum > 0 &&
+        returnAmountNum >= 0 &&
+        (!includeTime || (timePeriodNum !== undefined && !isNaN(timePeriodNum) && timePeriodNum > 0))
       ) {
-        calculateROI()
+        calculateRoi()
       }
     }
-  }, [initialInvestment, annualRevenue, annualCosts, projectDuration, discountRate])
+  }, [investmentCost, returnAmount, timePeriod, periodUnit, includeTime])
 
   // Format currency
   const formatCurrency = (value: number) => {
@@ -256,97 +131,96 @@ export default function RoiCalculator({ onInputChange, onCalculate, config }: Ro
     })
   }
 
+  // Format percentage
+  const formatPercentage = (value: number) => {
+    return `${value.toFixed(2)}%`
+  }
+
   return (
     <div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div>
-          <label htmlFor="initialInvestment" className="block text-sm font-medium text-gray-700 mb-1">
-            Investimento Inicial (R$)
+          <label htmlFor="investmentCost" className="block text-sm font-medium text-gray-700 mb-1">
+            Custo do Investimento (R$)
           </label>
           <input
-            id="initialInvestment"
+            id="investmentCost"
             type="number"
-            value={initialInvestment}
-            onChange={(e) => setInitialInvestment(e.target.value)}
-            placeholder="Ex: 100000"
+            value={investmentCost}
+            onChange={(e) => setInvestmentCost(e.target.value)}
+            placeholder="Ex: 10000"
             className="calculator-input"
-            min="0"
-            step="1000"
+            min="0.01"
+            step="0.01"
           />
-          {errors.initialInvestment && <p className="text-red-500 text-sm mt-1">{errors.initialInvestment}</p>}
+          {errors.investmentCost && <p className="text-red-500 text-sm mt-1">{errors.investmentCost}</p>}
         </div>
 
         <div>
-          <label htmlFor="projectDuration" className="block text-sm font-medium text-gray-700 mb-1">
-            Duração do Projeto (anos)
+          <label htmlFor="returnAmount" className="block text-sm font-medium text-gray-700 mb-1">
+            Valor de Retorno (R$)
           </label>
           <input
-            id="projectDuration"
+            id="returnAmount"
             type="number"
-            value={projectDuration}
-            onChange={(e) => setProjectDuration(e.target.value)}
-            placeholder="Ex: 5"
-            className="calculator-input"
-            min="1"
-            max="50"
-          />
-          {errors.projectDuration && <p className="text-red-500 text-sm mt-1">{errors.projectDuration}</p>}
-        </div>
-
-        <div>
-          <label htmlFor="annualRevenue" className="block text-sm font-medium text-gray-700 mb-1">
-            Receita Anual (R$)
-          </label>
-          <input
-            id="annualRevenue"
-            type="number"
-            value={annualRevenue}
-            onChange={(e) => setAnnualRevenue(e.target.value)}
-            placeholder="Ex: 50000"
+            value={returnAmount}
+            onChange={(e) => setReturnAmount(e.target.value)}
+            placeholder="Ex: 15000"
             className="calculator-input"
             min="0"
-            step="1000"
+            step="0.01"
           />
-          {errors.annualRevenue && <p className="text-red-500 text-sm mt-1">{errors.annualRevenue}</p>}
-        </div>
-
-        <div>
-          <label htmlFor="annualCosts" className="block text-sm font-medium text-gray-700 mb-1">
-            Custos Anuais (R$)
-          </label>
-          <input
-            id="annualCosts"
-            type="number"
-            value={annualCosts}
-            onChange={(e) => setAnnualCosts(e.target.value)}
-            placeholder="Ex: 30000"
-            className="calculator-input"
-            min="0"
-            step="1000"
-          />
-          {errors.annualCosts && <p className="text-red-500 text-sm mt-1">{errors.annualCosts}</p>}
+          {errors.returnAmount && <p className="text-red-500 text-sm mt-1">{errors.returnAmount}</p>}
         </div>
 
         <div className="md:col-span-2">
-          <label htmlFor="discountRate" className="block text-sm font-medium text-gray-700 mb-1">
-            Taxa de Desconto (%)
-          </label>
-          <input
-            id="discountRate"
-            type="number"
-            value={discountRate}
-            onChange={(e) => setDiscountRate(e.target.value)}
-            placeholder="Ex: 10"
-            className="calculator-input"
-            min="0"
-            max="100"
-            step="0.1"
-          />
-          {errors.discountRate && <p className="text-red-500 text-sm mt-1">{errors.discountRate}</p>}
+          <div className="flex items-center mb-4">
+            <input
+              id="includeTime"
+              type="checkbox"
+              checked={includeTime}
+              onChange={(e) => setIncludeTime(e.target.checked)}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label htmlFor="includeTime" className="ml-2 block text-sm text-gray-700">
+              Incluir período de tempo (para calcular ROI anualizado)
+            </label>
+          </div>
         </div>
+
+        {includeTime && (
+          <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label htmlFor="timePeriod" className="block text-sm font-medium text-gray-700 mb-1">
+                Período
+              </label>
+              <div className="flex">
+                <input
+                  id="timePeriod"
+                  type="number"
+                  value={timePeriod}
+                  onChange={(e) => setTimePeriod(e.target.value)}
+                  placeholder="Ex: 2"
+                  className="calculator-input rounded-r-none flex-grow"
+                  min="0.1"
+                  step="0.1"
+                />
+                <select
+                  value={periodUnit}
+                  onChange={(e) => setPeriodUnit(e.target.value as "months" | "years")}
+                  className="border border-l-0 border-gray-300 rounded-r-md p-2 bg-gray-50"
+                >
+                  <option value="years">Anos</option>
+                  <option value="months">Meses</option>
+                </select>
+              </div>
+              {errors.timePeriod && <p className="text-red-500 text-sm mt-1">{errors.timePeriod}</p>}
+            </div>
+          </div>
+        )}
       </div>
 
-      <button onClick={calculateROI} className="calculator-button">
+      <button onClick={calculateRoi} className="calculator-button">
         Calcular ROI
       </button>
 
@@ -354,203 +228,67 @@ export default function RoiCalculator({ onInputChange, onCalculate, config }: Ro
         <div className="calculator-result">
           <h3 className="text-lg font-semibold mb-4">Resultado:</h3>
 
-          <div
-            className={`p-6 rounded-md border mb-6 ${
-              result.isPositiveNPV ? "bg-green-50 border-green-100" : "bg-red-50 border-red-100"
-            }`}
-          >
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="text-center">
-                <p className="text-sm text-gray-600 mb-1">ROI Simples</p>
-                <p className={`text-3xl font-bold ${result.simpleROI >= 0 ? "text-green-700" : "text-red-700"}`}>
-                  {result.simpleROI}%
-                </p>
-                <p className="text-sm text-gray-500 mt-1">Sem considerar o valor do dinheiro no tempo</p>
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-purple-50 p-4 rounded-md border border-purple-100">
+              <p className="text-sm text-gray-600 mb-1">ROI</p>
+              <p className="text-xl font-bold text-purple-700">{formatPercentage(result.roi)}</p>
+              <p className="text-xs text-gray-500 mt-1">
+                Retorno sobre Investimento
+              </p>
+            </div>
 
-              <div className="text-center">
-                <p className="text-sm text-gray-600 mb-1">Valor Presente Líquido (VPL)</p>
-                <p className={`text-3xl font-bold ${result.npv >= 0 ? "text-green-700" : "text-red-700"}`}>
-                  {formatCurrency(result.npv)}
-                </p>
-                <p className="text-sm text-gray-500 mt-1">
-                  {result.npv >= 0 ? "Projeto economicamente viável" : "Projeto economicamente inviável"}
+            {includeTime && (
+              <div className="bg-indigo-50 p-4 rounded-md border border-indigo-100">
+                <p className="text-sm text-gray-600 mb-1">ROI Anualizado</p>
+                <p className="text-xl font-bold text-indigo-700">{formatPercentage(result.annualizedRoi)}</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Retorno Anual Equivalente
                 </p>
               </div>
+            )}
 
-              <div className="text-center">
-                <p className="text-sm text-gray-600 mb-1">Taxa Interna de Retorno (TIR)</p>
-                <p className="text-3xl font-bold text-blue-700">{result.irr !== null ? `${result.irr}%` : "N/A"}</p>
-                <p className="text-sm text-gray-500 mt-1">
-                  {result.irr !== null && result.irr > result.discountRate
-                    ? "Superior à taxa de desconto"
-                    : "Inferior à taxa de desconto"}
-                </p>
-              </div>
+            <div className="bg-green-50 p-4 rounded-md border border-green-100">
+              <p className="text-sm text-gray-600 mb-1">Retorno Líquido</p>
+              <p className="text-xl font-bold text-green-700">{formatCurrency(result.netReturn)}</p>
+              <p className="text-xs text-gray-500 mt-1">
+                Lucro ou Prejuízo
+              </p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div className="bg-blue-50 p-4 rounded-md border border-blue-100">
-              <h4 className="font-medium mb-2">Métricas Adicionais:</h4>
-              <ul className="text-sm space-y-2">
-                <li className="flex justify-between">
-                  <span className="font-medium">Período de Payback:</span>
-                  <span>{result.paybackPeriod.toFixed(1)} anos</span>
-                </li>
-                <li className="flex justify-between">
-                  <span className="font-medium">ROI Descontado:</span>
-                  <span>{result.discountedROI}%</span>
-                </li>
-                <li className="flex justify-between">
-                  <span className="font-medium">Índice de Lucratividade:</span>
-                  <span>{result.profitabilityIndex}</span>
-                </li>
-                <li className="flex justify-between">
-                  <span className="font-medium">Lucro Anual:</span>
-                  <span>{formatCurrency(result.annualProfit)}</span>
-                </li>
-                <li className="flex justify-between">
-                  <span className="font-medium">Ano de Break-even:</span>
-                  <span>{result.breakEvenYear !== null ? `Ano ${result.breakEvenYear}` : "Não atingido"}</span>
-                </li>
-              </ul>
-            </div>
-
-            <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-              <h4 className="font-medium mb-2">Resumo do Projeto:</h4>
-              <ul className="text-sm space-y-2">
-                <li className="flex justify-between">
-                  <span className="font-medium">Investimento Inicial:</span>
-                  <span>{formatCurrency(result.initialInvestment)}</span>
-                </li>
-                <li className="flex justify-between">
-                  <span className="font-medium">Receita Anual:</span>
-                  <span>{formatCurrency(result.annualRevenue)}</span>
-                </li>
-                <li className="flex justify-between">
-                  <span className="font-medium">Custos Anuais:</span>
-                  <span>{formatCurrency(result.annualCosts)}</span>
-                </li>
-                <li className="flex justify-between">
-                  <span className="font-medium">Duração do Projeto:</span>
-                  <span>{result.projectDuration} anos</span>
-                </li>
-                <li className="flex justify-between">
-                  <span className="font-medium">Taxa de Desconto:</span>
-                  <span>{result.discountRate}%</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="mb-6">
-            <h4 className="font-medium mb-2">Fluxo de Caixa Anual:</h4>
-            <div className="overflow-x-auto">
-              <table className="min-w-full bg-white border border-gray-200">
-                <thead>
-                  <tr className="bg-gray-100">
-                    <th className="py-2 px-4 border-b text-left">Ano</th>
-                    <th className="py-2 px-4 border-b text-right">Lucro Anual</th>
-                    <th className="py-2 px-4 border-b text-right">Lucro Descontado</th>
-                    <th className="py-2 px-4 border-b text-right">Lucro Acumulado</th>
-                    <th className="py-2 px-4 border-b text-center">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="border-b">
-                    <td className="py-2 px-4">0</td>
-                    <td className="py-2 px-4 text-right text-red-600">-{formatCurrency(result.initialInvestment)}</td>
-                    <td className="py-2 px-4 text-right text-red-600">-{formatCurrency(result.initialInvestment)}</td>
-                    <td className="py-2 px-4 text-right text-red-600">-{formatCurrency(result.initialInvestment)}</td>
-                    <td className="py-2 px-4 text-center">Investimento</td>
-                  </tr>
-                  {result.yearlyBreakdown.map((yearData: any, index: number) => (
-                    <tr key={index} className="border-b hover:bg-gray-50">
-                      <td className="py-2 px-4">{yearData.year}</td>
-                      <td className="py-2 px-4 text-right">{formatCurrency(yearData.annualProfit)}</td>
-                      <td className="py-2 px-4 text-right">{formatCurrency(yearData.discountedProfit)}</td>
-                      <td
-                        className={`py-2 px-4 text-right ${
-                          yearData.cumulativeProfit >= 0 ? "text-green-600" : "text-red-600"
-                        }`}
-                      >
-                        {formatCurrency(yearData.cumulativeProfit)}
-                      </td>
-                      <td className="py-2 px-4 text-center">
-                        {yearData.year === result.breakEvenYear ? (
-                          <span className="inline-block px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded">
-                            Break-even
-                          </span>
-                        ) : yearData.cumulativeProfit >= 0 ? (
-                          <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded">
-                            Lucro
-                          </span>
-                        ) : (
-                          <span className="inline-block px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded">
-                            Recuperação
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div className="bg-yellow-50 p-4 rounded-md border border-yellow-100 mb-4">
-            <p className="text-sm font-medium text-yellow-800 mb-2">⚠️ Interpretação dos Resultados</p>
-            <ul className="text-sm text-yellow-700 list-disc pl-5 space-y-1">
-              <li>
-                <strong>VPL (Valor Presente Líquido):</strong> {result.npv >= 0 ? "Positivo" : "Negativo"} (
-                {formatCurrency(result.npv)}).{" "}
-                {result.npv >= 0 ? "O projeto é economicamente viável." : "O projeto não é economicamente viável."}
-              </li>
-              <li>
-                <strong>TIR (Taxa Interna de Retorno):</strong>{" "}
-                {result.irr !== null
-                  ? `${result.irr}% - ${
-                      result.irr > result.discountRate
-                        ? "Superior à taxa de desconto, indicando viabilidade."
-                        : "Inferior à taxa de desconto, indicando inviabilidade."
-                    }`
-                  : "Não foi possível calcular."}
-              </li>
-              <li>
-                <strong>Payback:</strong> {result.paybackPeriod.toFixed(1)} anos.{" "}
-                {result.paybackPeriod <= result.projectDuration
-                  ? `O investimento é recuperado dentro do período do projeto.`
-                  : `O investimento não é recuperado dentro do período do projeto.`}
-              </li>
+          <div className="mt-6 pt-4 border-t border-gray-200">
+            <h4 className="font-medium mb-2">Detalhes do Cálculo:</h4>
+            <ul className="text-sm space-y-1">
+              <li>Investimento: {formatCurrency(result.investmentCost)}</li>
+              <li>Valor de Retorno: {formatCurrency(result.returnAmount)}</li>
+              <li>ROI: <span className={result.roi >= 0 ? "text-green-600" : "text-red-600"}>{formatPercentage(result.roi)}</span></li>
+              {includeTime && (
+                <>
+                  <li>Período: {result.timePeriod} {result.periodUnit === "years" ? "anos" : "meses"}</li>
+                  <li>ROI Anualizado: <span className={result.annualizedRoi >= 0 ? "text-green-600" : "text-red-600"}>{formatPercentage(result.annualizedRoi)}</span></li>
+                </>
+              )}
             </ul>
           </div>
 
-          <div className="bg-blue-50 p-4 rounded-md border border-blue-100">
-            <p className="text-sm font-medium text-blue-800 mb-2">💡 Conclusão</p>
-            <p className="text-sm text-blue-700">
-              {result.isPositiveNPV
-                ? `Este projeto apresenta um VPL positivo de ${formatCurrency(
-                    result.npv,
-                  )} e uma TIR de ${result.irr}%, que é ${
-                    result.irr > result.discountRate ? "superior" : "inferior"
-                  } à taxa de desconto de ${
-                    result.discountRate
-                  }%. O período de payback é de ${result.paybackPeriod.toFixed(1)} anos. Com base nestes indicadores, o projeto ${
-                    result.irr > result.discountRate && result.npv > 0
-                      ? "é economicamente viável e recomendado para investimento."
-                      : "apresenta riscos e deve ser reavaliado antes do investimento."
-                  }`
-                : `Este projeto apresenta um VPL negativo de ${formatCurrency(
-                    result.npv,
-                  )} e uma TIR de ${result.irr}%, que é inferior à taxa de desconto de ${
-                    result.discountRate
-                  }%. O período de payback é de ${result.paybackPeriod.toFixed(1)} anos, o que ${
-                    result.paybackPeriod > result.projectDuration
-                      ? "excede a duração do projeto."
-                      : "está dentro da duração do projeto, mas o retorno financeiro ainda é insuficiente."
-                  } Com base nestes indicadores, o projeto não é economicamente viável e não é recomendado para investimento.`}
-            </p>
+          <div className="mt-6 pt-4 border-t border-gray-200">
+            <h4 className="font-medium mb-2">Como Interpretar:</h4>
+            <ul className="text-sm space-y-1">
+              <li>
+                <strong>ROI positivo ({result.roi >= 0 ? "seu caso" : "não é seu caso"}):</strong> Indica que o investimento gerou lucro.
+              </li>
+              <li>
+                <strong>ROI igual a zero:</strong> Indica que você recuperou exatamente o valor investido, sem lucro ou perda.
+              </li>
+              <li>
+                <strong>ROI negativo ({result.roi < 0 ? "seu caso" : "não é seu caso"}):</strong> Indica que o investimento gerou prejuízo.
+              </li>
+              {includeTime && (
+                <li>
+                  <strong>ROI anualizado:</strong> Permite comparar investimentos com diferentes durações.
+                </li>
+              )}
+            </ul>
           </div>
         </div>
       )}

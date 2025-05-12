@@ -9,6 +9,9 @@ import MarkupCalculator from "./specific/MarkupCalculator"
 import CaloriasDiariasCalculator from "./specific/CaloriasDiariasCalculator"
 import FrequenciaCardiacaCalculator from "./specific/FrequenciaCardiacaCalculator"
 import PercentualGorduraCalculator from "./specific/PercentualGorduraCalculator"
+import AmortizacaoCalculator from "./specific/AmortizacaoCalculator"
+import RoiCalculator from "./specific/RoiCalculator"
+import ValorFuturoCalculator from "./specific/ValorFuturoCalculator"
 import CalculatorSkeleton from "./CalculatorSkeleton"
 
 interface CalculatorComponentProps {
@@ -45,6 +48,9 @@ export default function CalculatorComponent({ slug }: CalculatorComponentProps) 
     'calorias-diarias': CaloriasDiariasCalculator,
     'frequencia-cardiaca': FrequenciaCardiacaCalculator,
     'percentual-gordura': PercentualGorduraCalculator,
+    'amortizacao': AmortizacaoCalculator,
+    'roi': RoiCalculator,
+    'valor-futuro': ValorFuturoCalculator,
   }
 
   const Component = calculatorMap[slug]
