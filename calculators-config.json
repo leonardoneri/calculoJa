@@ -321,6 +321,19 @@
       "config": {
         "decimalPlaces": 2
       }
+    },
+    {
+      "id": "sono-ideal",
+      "slug": "sono-ideal",
+      "title": "Calculadora de Sono Ideal",
+      "description": "Descubra quantas horas de sono você precisa com base na sua idade, estilo de vida e preferências pessoais.",
+      "category": "HEALTH",
+      "type": "sono-ideal",
+      "icon": "😴",
+      "keywords": ["sono", "dormir", "descanso", "insônia", "ciclo de sono", "saúde do sono", "qualidade do sono", "cronótipo"],
+      "config": {
+        "decimalPlaces": 1
+      }
     }
   ]
 }

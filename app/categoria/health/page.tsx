@@ -24,6 +24,14 @@ export default async function HealthCategoryPage() {
       )
     },
     {
+      id: "sleep",
+      title: "Sono e Descanso",
+      description: "Otimize seu sono e entenda melhor seus padrões de descanso",
+      calculators: healthCalculators.filter(calc => 
+        ["sono-ideal"].includes(calc.slug)
+      )
+    },
+    {
       id: "fitness",
       title: "Fitness e Exercícios",
       description: "Monitore e planeje seus exercícios físicos para melhor desempenho",

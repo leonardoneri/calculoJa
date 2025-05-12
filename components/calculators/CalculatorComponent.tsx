@@ -28,6 +28,7 @@ import EmprestimoConsignadoCalculator from "./specific/EmprestimoConsignadoCalcu
 import PISPASEPCalculator from "./specific/PISPASEPCalculator"
 import ContribuicaoINSSCalculator from "./specific/ContribuicaoINSSCalculator"
 import NecessidadeAguaCalculator from "./specific/NecessidadeAguaCalculator"
+import SonoIdealCalculator from "./specific/SonoIdealCalculator"
 import CalculatorSkeleton from "./CalculatorSkeleton"
 
 interface CalculatorComponentProps {
@@ -83,6 +84,7 @@ export default function CalculatorComponent({ slug }: CalculatorComponentProps) 
     'pis-pasep': PISPASEPCalculator,
     'contribuicao-inss': ContribuicaoINSSCalculator,
     'necessidade-agua': NecessidadeAguaCalculator,
+    'sono-ideal': SonoIdealCalculator,
   }
 
   const Component = calculatorMap[slug]
