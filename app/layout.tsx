@@ -25,7 +25,7 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: "CálculoJá | Calculadoras Online Especializadas",
-  description: "CálculoJá oferece mais de 25 calculadoras especializadas gratuitas para facilitar seu dia a dia: IMC, juros compostos, conversão de moedas e muito mais.",
+  description: "Calculadoras online gratuitas para finanças, RH, saúde e negócios. Obtenha resultados precisos com explicações detalhadas para tomar decisões melhores no dia a dia.",
   keywords: "calculadoras online, imc, juros compostos, conversão de moedas, cálculo já, calculadora financeira, calculadora de negócios, calculadora de saúde",
   generator: 'Next.js',
   applicationName: 'CálculoJá',
@@ -56,7 +56,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'CálculoJá | Calculadoras Online Especializadas',
-    description: 'CálculoJá oferece mais de 25 calculadoras especializadas gratuitas: IMC, juros compostos, conversão de moedas e muito mais.',
+    description: 'Calculadoras online gratuitas para finanças, RH, saúde e negócios. Obtenha resultados precisos com explicações detalhadas.',
     url: 'https://xn--clculoj-hwag.com.br',
     siteName: 'CálculoJá',
     locale: 'pt_BR',
@@ -73,7 +73,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'CálculoJá | Calculadoras Online Especializadas',
-    description: 'CálculoJá oferece mais de 25 calculadoras especializadas gratuitas para facilitar seu dia a dia.',
+    description: 'Calculadoras online gratuitas para finanças, RH, saúde e negócios. Obtenha resultados precisos com explicações detalhadas.',
     images: ['/calculoja-og.png'],
   }
 }
