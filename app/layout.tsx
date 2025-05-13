@@ -9,6 +9,8 @@ import { Providers } from "@/components/Providers"
 import { Suspense } from "react"
 import Script from "next/script"
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import { generateSchemaOrg, SchemaOrg } from "@/components/SchemaOrg"
+import Breadcrumbs from "@/components/layout/Breadcrumbs"
 
 const inter = Inter({ 
   subsets: ["latin"],
@@ -78,11 +80,16 @@ export const metadata: Metadata = {
   }
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  // Gera os schemas para a página principal
+  const schemas = await generateSchemaOrg({
+    type: 'home'
+  });
+
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <head>
@@ -90,6 +97,11 @@ export default function RootLayout({
         <link rel="icon" href="/calculoja-icon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/calculoja-icon.svg" />
         <link rel="manifest" href="/manifest.json" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
+        <link rel="preconnect" href="https://www.google-analytics.com" />
+        <link rel="preconnect" href="https://pagead2.googlesyndication.com" crossOrigin="anonymous" />
+        {/* JSON-LD Schema */}
+        <SchemaOrg schemas={schemas} />
         <Script
           id="google-adsense"
           async
@@ -103,6 +115,9 @@ export default function RootLayout({
           <div className="flex flex-col min-h-screen">
             <Header />
             <main className="flex-grow container mx-auto px-4 py-8">
+              <Suspense fallback={null}>
+                <Breadcrumbs />
+              </Suspense>
               <Suspense fallback={<div className="min-h-[200px] flex items-center justify-center">Carregando...</div>}>
                 {children}
               </Suspense>
