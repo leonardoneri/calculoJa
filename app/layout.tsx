@@ -86,6 +86,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <head>
+        <meta name="google-site-verification" content="google46dcf660c76e8a0c" />
         <link rel="icon" href="/calculoja-icon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/calculoja-icon.svg" />
         <link rel="manifest" href="/manifest.json" />
