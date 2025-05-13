@@ -8,7 +8,7 @@ export default function Footer() {
   return (
     <footer className="bg-gray-800 text-white py-12">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
             <div className="mb-4">
               <Image 
@@ -100,17 +100,6 @@ export default function Footer() {
                 </Link>
               </li>
             </ul>
-          </div>
-
-          <div>
-            <h3 className="text-lg font-bold mb-4">Versão Premium</h3>
-            <p className="text-gray-300 mb-4">Acesse recursos exclusivos e remova anúncios com nossa versão premium.</p>
-            <Link
-              href="/premium"
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-block"
-            >
-              Saiba Mais
-            </Link>
           </div>
         </div>
 
