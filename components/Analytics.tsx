@@ -6,12 +6,16 @@ import { useEffect } from "react"
 import { Suspense } from "react"
 
 // Substitua por sua ID do Google Analytics
-const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || "G-XXXXXXXXXX"
+const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || ""
 // Substitua por sua ID do Google Tag Manager
-const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID || "GTM-XXXXXXX"
+const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID || ""
 
 // Script elements to be rendered regardless of analytics tracking
 function AnalyticsScripts() {
+  if (!GA_MEASUREMENT_ID || !GTM_ID || GA_MEASUREMENT_ID === "" || GTM_ID === "") {
+    return null; // Não carrega os scripts se os IDs não estiverem configurados
+  }
+
   return (
     <>
       {/* Google Analytics */}
@@ -53,7 +57,7 @@ function AnalyticsTracking() {
   const searchParams = useSearchParams()
 
   useEffect(() => {
-    if (pathname && typeof window !== 'undefined' && (window as any).gtag) {
+    if (pathname && typeof window !== 'undefined' && (window as any).gtag && GA_MEASUREMENT_ID) {
       // Track page views
       (window as any).gtag("config", GA_MEASUREMENT_ID, {
         page_path: pathname,
