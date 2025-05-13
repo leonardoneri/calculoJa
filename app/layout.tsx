@@ -86,7 +86,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <head>
-        <meta name="google-site-verification" content="google46dcf660c76e8a0c" />
+        <meta name="google-site-verification" content="RjPrjbBVkRaZlwEaHc6s-1DJkrWUNXj-H4uZZcwqOcM" />
         <link rel="icon" href="/calculoja-icon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/calculoja-icon.svg" />
         <link rel="manifest" href="/manifest.json" />
@@ -94,7 +94,7 @@ export default function RootLayout({
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2877556290224566"
           crossOrigin="anonymous"
-          strategy="lazyOnload" // Alterado para lazyOnload para melhorar performance
+          strategy="lazyOnload"
         />
       </head>
       <body className={inter.className} suppressHydrationWarning>
