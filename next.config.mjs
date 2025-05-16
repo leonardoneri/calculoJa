@@ -28,6 +28,16 @@ const nextConfig = {
         source: '/categoria/:category',
         destination: '/categoria/:category/page',
       },
+      {
+        source: '/ads.txt',
+        destination: '/ads.txt',
+        has: [
+          {
+            type: 'host',
+            value: '(?<host>.*)',
+          },
+        ],
+      },
     ];
   },
   async redirects() {
@@ -64,6 +74,19 @@ const nextConfig = {
             key: 'Referrer-Policy',
             value: 'origin-when-cross-origin',
           },
+        ],
+      },
+      {
+        source: '/ads.txt',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=3600',
+          },
+          {
+            key: 'Content-Type',
+            value: 'text/plain',
+          }
         ],
       },
       {
