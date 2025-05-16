@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 
 const ClientAdSense = () => {
   const isProduction = process.env.NODE_ENV === 'production'
-  const clientId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT || "ca-pub-XXXXXXXXXXXXXXXX"
+  const clientId = "ca-pub-2877556290224566"
 
   useEffect(() => {
     if (!isProduction) return

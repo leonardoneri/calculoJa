@@ -4,19 +4,16 @@ import { useEffect, useRef, useState } from "react"
 
 interface AdBannerProps {
   position: "above-calculator" | "below-calculator" | "sidebar" | "in-content"
-  adClient?: string
-  adSlot?: string
 }
 
 export default function AdBanner({
   position,
-  adClient = process.env.NEXT_PUBLIC_ADSENSE_CLIENT || "ca-pub-XXXXXXXXXXXXXXXX",
-  adSlot = process.env.NEXT_PUBLIC_ADSENSE_SLOT || "XXXXXXXXXX",
 }: AdBannerProps) {
   const adRef = useRef<HTMLDivElement>(null)
   const [adError, setAdError] = useState(false)
   const [adIsLoading, setAdIsLoading] = useState(true)
   const isProduction = process.env.NODE_ENV === 'production'
+  const adClient = "ca-pub-2877556290224566"
 
   useEffect(() => {
     // Não tenta carregar anúncios em desenvolvimento
@@ -128,7 +125,6 @@ export default function AdBanner({
         className="adsbygoogle"
         style={{ display: "block", width: "100%", height: "100%" }}
         data-ad-client={adClient}
-        data-ad-slot={adSlot}
         data-ad-format="auto"
         data-full-width-responsive="true"
       ></ins>
