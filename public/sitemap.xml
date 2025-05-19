@@ -1,73 +1,176 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- URLs estáticas -->
   <url>
     <loc>https://xn--clculoj-hwag.com.br</loc>
-    <lastmod>2023-12-30</lastmod>
+    <lastmod>2023-05-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://xn--clculoj-hwag.com.br/sobre</loc>
-    <lastmod>2023-12-30</lastmod>
+    <lastmod>2023-05-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
-  
-  <!-- URLs para categorias -->
-  <url>
-    <loc>https://xn--clculoj-hwag.com.br/categoria/health</loc>
-    <lastmod>2023-12-30</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://xn--clculoj-hwag.com.br/categoria/finance</loc>
-    <lastmod>2023-12-30</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://xn--clculoj-hwag.com.br/categoria/business</loc>
-    <lastmod>2023-12-30</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://xn--clculoj-hwag.com.br/categoria/conversion</loc>
-    <lastmod>2023-12-30</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
   <url>
     <loc>https://xn--clculoj-hwag.com.br/recursos-humanos</loc>
-    <lastmod>2023-12-30</lastmod>
+    <lastmod>2023-05-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://xn--clculoj-hwag.com.br/emprestimos-financiamentos</loc>
-    <lastmod>2023-12-30</lastmod>
+    <lastmod>2023-05-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
-  
-  <!-- URLs para as calculadoras mais populares (como exemplo) -->
+  <url>
+    <loc>https://xn--clculoj-hwag.com.br/categoria/health</loc>
+    <lastmod>2023-05-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://xn--clculoj-hwag.com.br/categoria/finance</loc>
+    <lastmod>2023-05-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://xn--clculoj-hwag.com.br/categoria/business</loc>
+    <lastmod>2023-05-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://xn--clculoj-hwag.com.br/categoria/conversion</loc>
+    <lastmod>2023-05-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
   <url>
     <loc>https://xn--clculoj-hwag.com.br/calculadora/imc</loc>
-    <lastmod>2023-12-30</lastmod>
+    <lastmod>2023-05-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://xn--clculoj-hwag.com.br/calculadora/juros-compostos</loc>
-    <lastmod>2023-12-30</lastmod>
+    <lastmod>2023-05-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://xn--clculoj-hwag.com.br/calculadora/salario-liquido</loc>
-    <lastmod>2023-12-30</lastmod>
+    <loc>https://xn--clculoj-hwag.com.br/calculadora/rescisao</loc>
+    <lastmod>2023-05-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://xn--clculoj-hwag.com.br/calculadora/decimo-terceiro</loc>
+    <lastmod>2023-05-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://xn--clculoj-hwag.com.br/calculadora/ferias</loc>
+    <lastmod>2023-05-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://xn--clculoj-hwag.com.br/calculadora/horas-extras</loc>
+    <lastmod>2023-05-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://xn--clculoj-hwag.com.br/calculadora/ir-fonte</loc>
+    <lastmod>2023-05-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://xn--clculoj-hwag.com.br/calculadora/adicional-noturno</loc>
+    <lastmod>2023-05-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://xn--clculoj-hwag.com.br/calculadora/vale-transporte</loc>
+    <lastmod>2023-05-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://xn--clculoj-hwag.com.br/calculadora/contribuicao-inss</loc>
+    <lastmod>2023-05-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://xn--clculoj-hwag.com.br/calculadora/turnover</loc>
+    <lastmod>2023-05-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://xn--clculoj-hwag.com.br/calculadora/absenteismo</loc>
+    <lastmod>2023-05-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://xn--clculoj-hwag.com.br/calculadora/emprestimo-consignado</loc>
+    <lastmod>2023-05-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://xn--clculoj-hwag.com.br/calculadora/amortizacao</loc>
+    <lastmod>2023-05-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://xn--clculoj-hwag.com.br/calculadora/ponto-equilibrio</loc>
+    <lastmod>2023-05-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://xn--clculoj-hwag.com.br/calculadora/frequencia-cardiaca</loc>
+    <lastmod>2023-05-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://xn--clculoj-hwag.com.br/calculadora/calorias-diarias</loc>
+    <lastmod>2023-05-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://xn--clculoj-hwag.com.br/calculadora/sono-ideal</loc>
+    <lastmod>2023-05-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://xn--clculoj-hwag.com.br/calculadora/necessidade-agua</loc>
+    <lastmod>2023-05-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://xn--clculoj-hwag.com.br/calculadora/percentual-gordura</loc>
+    <lastmod>2023-05-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://xn--clculoj-hwag.com.br/calculadora/conversao-temperatura</loc>
+    <lastmod>2023-05-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>

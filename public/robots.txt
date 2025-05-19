@@ -1,0 +1,18 @@
+# Allow all web crawlers
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /_next/
+Disallow: /admin/
+
+# Allow Googlebot for ads
+User-agent: Googlebot
+Allow: /ads.txt
+
+# Allow AdSense
+User-agent: Mediapartners-Google
+Allow: /ads.txt
+Allow: /
+
+# Sitemap
+Sitemap: https://xn--clculoj-hwag.com.br/sitemap.xml 
