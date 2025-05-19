@@ -8,7 +8,7 @@ interface JSONLDSchema {
 }
 
 export async function generateSchemaOrg(pageData?: {
-  type: 'home' | 'calculator' | 'category';
+  type: 'home' | 'calculator' | 'category' | 'recursos-humanos' | 'emprestimos-financiamentos' | 'sobre' | string;
   data?: any;
 }) {
   const baseUrl = 'https://xn--clculoj-hwag.com.br';
@@ -67,6 +67,8 @@ export async function generateSchemaOrg(pageData?: {
 
   // Schema para BreadcrumbList
   let breadcrumbSchema: JSONLDSchema | null = null;
+  
+  // Gera breadcrumb para calculadoras
   if (pageData?.type === 'calculator' && pageData.data) {
     breadcrumbSchema = {
       '@context': 'https://schema.org',
@@ -94,7 +96,9 @@ export async function generateSchemaOrg(pageData?: {
         }
       ]
     };
-  } else if (pageData?.type === 'category' && pageData.data) {
+  } 
+  // Gera breadcrumb para categorias
+  else if (pageData?.type === 'category' && pageData.data) {
     breadcrumbSchema = {
       '@context': 'https://schema.org',
       '@type': 'BreadcrumbList',
@@ -115,6 +119,37 @@ export async function generateSchemaOrg(pageData?: {
         }
       ]
     };
+  }
+  // Gera breadcrumb para outras páginas
+  else {
+    breadcrumbSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'Home',
+          item: baseUrl
+        }
+      ]
+    };
+
+    // Adiciona breadcrumb para páginas especiais
+    if (pageData?.type === 'home') {
+      // Não precisa adicionar nada, já temos o Home
+    } else {
+      // Para outras páginas, adiciona o nome da página atual
+      breadcrumbSchema.itemListElement.push({
+        '@type': 'ListItem',
+        position: 2,
+        name: pageData?.type === 'recursos-humanos' ? 'Recursos Humanos' :
+              pageData?.type === 'emprestimos-financiamentos' ? 'Empréstimos e Financiamentos' :
+              pageData?.type === 'sobre' ? 'Sobre Nós' :
+              'Página Atual',
+        item: `${baseUrl}/${pageData?.type || ''}`
+      });
+    }
   }
 
   // FAQPage schema para a página home
@@ -155,11 +190,11 @@ export async function generateSchemaOrg(pageData?: {
   // Junta todos os schemas que temos
   const allSchemas = [
     organizationSchema,
-    websiteSchema
+    websiteSchema,
+    breadcrumbSchema // Agora sempre incluímos o breadcrumb
   ];
 
   if (calculatorSchema) allSchemas.push(calculatorSchema);
-  if (breadcrumbSchema) allSchemas.push(breadcrumbSchema);
   if (faqSchema) allSchemas.push(faqSchema);
 
   return allSchemas;

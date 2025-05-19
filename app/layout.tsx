@@ -87,7 +87,8 @@ export default async function RootLayout({
 }) {
   // Gera os schemas para a página principal
   const schemas = await generateSchemaOrg({
-    type: 'home'
+    type: 'home',
+    data: null
   });
 
   return (
