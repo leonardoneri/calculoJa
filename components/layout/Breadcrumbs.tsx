@@ -33,8 +33,13 @@ export default function Breadcrumbs() {
         
         // Definindo labels para diferentes tipos de páginas
         if (segment === 'categoria') {
-          // Este é um segmento intermediário que não precisa ser mostrado
-          continue
+          // Este segmento será mostrado como "Categorias"
+          items.push({
+            href: '/categoria',
+            label: 'Categorias',
+            isCurrentPage: false
+          });
+          continue;
         } else if (pathSegments[i-1] === 'categoria') {
           // Este é um segmento de categoria, vamos traduzir
           switch (segment) {
@@ -54,8 +59,13 @@ export default function Breadcrumbs() {
               label = segment.charAt(0).toUpperCase() + segment.slice(1)
           }
         } else if (segment === 'calculadora') {
-          // Este é um segmento intermediário que não precisa ser mostrado
-          continue
+          // Este segmento será mostrado como "Calculadoras"
+          items.push({
+            href: '/calculadora',
+            label: 'Calculadoras',
+            isCurrentPage: false
+          });
+          continue;
         } else if (pathSegments[i-1] === 'calculadora') {
           // Este é um slug de calculadora, formatar como título
           label = segment
@@ -110,7 +120,7 @@ export default function Breadcrumbs() {
                 aria-current={crumb.isCurrentPage ? 'page' : undefined}
               >
                 <Home size={16} className="mr-1" />
-                <span className="sr-only">{crumb.label}</span>
+                <span className="sr-only md:not-sr-only md:ml-1">{crumb.label}</span>
               </Link>
             ) : (
               <>

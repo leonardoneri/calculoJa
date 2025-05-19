@@ -140,13 +140,15 @@ export async function generateSchemaOrg(pageData?: {
       // Não precisa adicionar nada, já temos o Home
     } else {
       // Para outras páginas, adiciona o nome da página atual
+      const pageName = pageData?.type === 'recursos-humanos' ? 'Recursos Humanos' :
+                       pageData?.type === 'emprestimos-financiamentos' ? 'Empréstimos e Financiamentos' :
+                       pageData?.type === 'sobre' ? 'Sobre Nós' :
+                       'Página Atual';
+      
       breadcrumbSchema.itemListElement.push({
         '@type': 'ListItem',
         position: 2,
-        name: pageData?.type === 'recursos-humanos' ? 'Recursos Humanos' :
-              pageData?.type === 'emprestimos-financiamentos' ? 'Empréstimos e Financiamentos' :
-              pageData?.type === 'sobre' ? 'Sobre Nós' :
-              'Página Atual',
+        name: pageName,
         item: `${baseUrl}/${pageData?.type || ''}`
       });
     }
@@ -200,16 +202,60 @@ export async function generateSchemaOrg(pageData?: {
   return allSchemas;
 }
 
+// Função para verificar e corrigir schemas antes de serializá-los
+function validateSchema(schema: JSONLDSchema): JSONLDSchema {
+  // Cria uma cópia para não modificar o objeto original
+  const validatedSchema = { ...schema };
+  
+  // Corrige especificamente os breadcrumbs
+  if (validatedSchema['@type'] === 'BreadcrumbList' && Array.isArray(validatedSchema.itemListElement)) {
+    validatedSchema.itemListElement = validatedSchema.itemListElement.map((item: any, index: number) => {
+      const validItem = { ...item };
+      
+      // Garante que todos os itens tenham @type correto
+      if (!validItem['@type']) {
+        validItem['@type'] = 'ListItem';
+      }
+      
+      // Garante que todos os itens tenham position correta
+      if (!validItem.position) {
+        validItem.position = index + 1;
+      }
+      
+      // Garante que todos os itens tenham name
+      if (!validItem.name && validItem.item) {
+        const urlParts = validItem.item.toString().split('/');
+        const lastPart = urlParts[urlParts.length - 1] || urlParts[urlParts.length - 2] || 'Home';
+        validItem.name = lastPart === '' ? 'Home' : lastPart.charAt(0).toUpperCase() + lastPart.slice(1);
+      }
+
+      // Se não tiver item (URL), usa a URL base
+      if (!validItem.item) {
+        validItem.item = 'https://xn--clculoj-hwag.com.br';
+      }
+      
+      return validItem;
+    });
+  }
+  
+  return validatedSchema;
+}
+
 export function SchemaOrg({ schemas }: { schemas: JSONLDSchema[] }) {
   return (
     <>
-      {schemas.map((schema, index) => (
-        <script
-          key={`schema-${index}`}
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-        />
-      ))}
+      {schemas.map((schema, index) => {
+        // Valida o schema antes de renderizar
+        const validatedSchema = validateSchema(schema);
+        
+        return (
+          <script
+            key={`schema-${index}`}
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(validatedSchema) }}
+          />
+        );
+      })}
     </>
   );
 } 

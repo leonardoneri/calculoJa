@@ -95,6 +95,7 @@ export default async function RootLayout({
     <html lang="pt-BR" suppressHydrationWarning>
       <head>
         <meta name="google-site-verification" content="gZoI3igyE7nCWEY3anLgqUhO2Qb4qW-zAct4wBAbllM" />
+        <meta name="google-site-verification" content="qgFFZQhX0gvcNK31AUb6ke2F33UryXX59y5iE2qxUu0" />
         <link rel="icon" href="/calculoja-icon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/calculoja-icon.svg" />
         <link rel="manifest" href="/manifest.json" />
