@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL('https://xn--clculoj-hwag.com.br'),
+  metadataBase: new URL('https://www.calculoja.com'),
   alternates: {
     canonical: '/',
   },
@@ -59,7 +59,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'CálculoJá | Calculadoras Online Especializadas',
     description: 'Calculadoras online gratuitas para finanças, RH, saúde e negócios. Obtenha resultados precisos com explicações detalhadas.',
-    url: 'https://xn--clculoj-hwag.com.br',
+    url: 'https://www.calculoja.com',
     siteName: 'CálculoJá',
     locale: 'pt_BR',
     type: 'website',

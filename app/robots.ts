@@ -17,6 +17,6 @@ export default function robots(): MetadataRoute.Robots {
         allow: ['/ads.txt', '/'],
       }
     ],
-    sitemap: 'https://xn--clculoj-hwag.com.br/sitemap.xml',
+    sitemap: 'https://www.calculoja.com/sitemap.xml',
   }
-} 
+}

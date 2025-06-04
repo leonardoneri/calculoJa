@@ -15,4 +15,4 @@ Allow: /ads.txt
 Allow: /
 
 # Sitemap
-Sitemap: https://xn--clculoj-hwag.com.br/sitemap.xml 
+Sitemap: https://www.calculoja.com/sitemap.xml
