@@ -14,7 +14,7 @@ export function SchemaOrgCalculation({ calculator, inputs, result }: SchemaOrgCa
     "@type": "Calculation",
     name: calculator.title,
     description: calculator.description,
-    url: `https://calculadoras-especializadas.vercel.app/calculadora/${calculator.slug}`,
+    url: `https://xn--clculoj-hwag.com.br/calculadora/${calculator.slug}`,
     calculationInputs: Object.entries(inputs).map(([key, value]) => ({
       "@type": "PropertyValue",
       name: key,
