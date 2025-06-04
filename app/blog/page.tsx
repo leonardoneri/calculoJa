@@ -4,7 +4,7 @@ import BlogPostCard from '@/components/blog/BlogPostCard'
 
 export const metadata: Metadata = {
   title: 'Blog - CálculoJá',
-  description: 'Artigos e dicas sobre calculadoras e matemática para o dia a dia.'
+  description: 'Conteúdos sobre finanças pessoais, saúde e temas úteis do cotidiano.'
 }
 
 export default async function BlogPage() {
@@ -14,7 +14,7 @@ export default async function BlogPage() {
     <div className="max-w-4xl mx-auto px-4 py-12">
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold mb-4">Blog</h1>
-        <p className="text-lg text-gray-600">Dicas e artigos sobre nossas calculadoras e temas relacionados.</p>
+        <p className="text-lg text-gray-600">Artigos sobre finanças, saúde e outros assuntos que facilitam o dia a dia.</p>
       </div>
 
       {posts.length === 0 ? (
