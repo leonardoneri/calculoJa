@@ -16,8 +16,18 @@ export default function PoliticaPrivacidadePage() {
         seu navegador.
       </p>
       <p>
-        Não coletamos dados pessoais sensíveis. Quaisquer informações fornecidas são usadas
-        apenas para melhorar a experiência no site.
+        Coletamos apenas dados fornecidos voluntariamente, como e-mail em formulários de
+        contato, e utilizamos essas informações apenas para responder às solicitações dos
+        usuários e aprimorar nossos serviços.
+      </p>
+      <p>
+        Nossos cookies registram preferências de navegação e ajudam a medir o desempenho
+        das páginas. Você pode removê-los nas configurações de seu navegador se desejar.
+      </p>
+      <p>
+        Não compartilhamos dados pessoais com terceiros e armazenamos as informações de
+        forma segura. Para esclarecer qualquer dúvida, entre em contato pelo e-mail
+        contato@calculoja.com.
       </p>
     </div>
   )
