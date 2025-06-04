@@ -11,7 +11,7 @@ export async function generateSchemaOrg(pageData?: {
   type: 'home' | 'calculator' | 'category' | 'recursos-humanos' | 'emprestimos-financiamentos' | 'sobre' | string;
   data?: any;
 }) {
-  const baseUrl = 'https://xn--clculoj-hwag.com.br';
+  const baseUrl = 'https://www.calculoja.com';
   
   // Schema da Organização
   const organizationSchema: JSONLDSchema = {
@@ -231,7 +231,7 @@ function validateSchema(schema: JSONLDSchema): JSONLDSchema {
 
       // Se não tiver item (URL), usa a URL base
       if (!validItem.item) {
-        validItem.item = 'https://xn--clculoj-hwag.com.br';
+        validItem.item = 'https://www.calculoja.com';
       }
       
       return validItem;

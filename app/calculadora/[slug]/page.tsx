@@ -32,13 +32,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: calculator.description,
     keywords: calculator.keywords ? calculator.keywords.join(", ") : undefined,
     alternates: {
-      canonical: `https://xn--clculoj-hwag.com.br/calculadora/${calculator.slug}`,
+      canonical: `https://www.calculoja.com/calculadora/${calculator.slug}`,
     },
     openGraph: {
       title: formattedTitle,
       description: calculator.description,
       type: "website",
-      url: `https://xn--clculoj-hwag.com.br/calculadora/${calculator.slug}`,
+      url: `https://www.calculoja.com/calculadora/${calculator.slug}`,
       images: [
         {
           url: '/calculoja-og.png',

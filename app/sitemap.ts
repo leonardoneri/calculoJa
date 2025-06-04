@@ -4,7 +4,7 @@ import fs from 'fs/promises'
 import path from 'path'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://xn--clculoj-hwag.com.br'
+  const baseUrl = 'https://www.calculoja.com'
   const calculators = await getAllCalculators()
 
   const calculatorsDir = path.join(process.cwd(), 'content/calculators')
