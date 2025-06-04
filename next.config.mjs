@@ -28,16 +28,6 @@ const nextConfig = {
         source: '/categoria/:category',
         destination: '/categoria/:category/page',
       },
-      {
-        source: '/ads.txt',
-        destination: '/ads.txt',
-        has: [
-          {
-            type: 'host',
-            value: '(?<host>.*)',
-          },
-        ],
-      },
     ];
   },
   async redirects() {

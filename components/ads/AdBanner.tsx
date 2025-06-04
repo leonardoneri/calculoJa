@@ -29,8 +29,6 @@ export default function AdBanner({
       try {
         // Verificar se o AdSense está disponível
         if (typeof window.adsbygoogle !== 'undefined' && Array.isArray(window.adsbygoogle)) {
-          // Registrar o início do carregamento do anúncio
-          console.log(`Carregando anúncio: ${position}`)
           
           const pushAd = () => {
             try {
@@ -72,7 +70,6 @@ export default function AdBanner({
     // Define um timeout para o carregamento do anúncio
     const adTimeout = setTimeout(() => {
       if (adIsLoading) {
-        console.warn(`Timeout ao carregar anúncio (${position})`)
         setAdIsLoading(false)
         setAdError(true)
       }

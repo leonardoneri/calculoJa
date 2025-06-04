@@ -17,8 +17,6 @@ const ClientAdSense = () => {
       script.crossOrigin = "anonymous"
       script.id = "google-adsense"
       
-      // Log do carregamento para facilitar debug
-      script.onload = () => console.log('AdSense script carregado')
       script.onerror = (e) => console.error('Erro ao carregar o script do AdSense:', e)
       
       // Adiciona o script apenas se ele ainda não existir

@@ -109,8 +109,6 @@ export default async function Home() {
 
   return (
     <div className="space-y-12">
-      {/* Link invisível para o Google */}
-      <a href="/googleindex.html" className="hidden">Índice de Calculadoras</a>
       
       <section className="text-center py-12 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
         <div className="flex justify-center mb-6">
