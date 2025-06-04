@@ -1,20 +1,40 @@
 import { MetadataRoute } from 'next'
 import { getAllCalculators } from '@/lib/calculators'
+import fs from 'fs/promises'
+import path from 'path'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://xn--clculoj-hwag.com.br'
   const calculators = await getAllCalculators()
-  
-  // Data fixa para lastModified (atualizar periodicamente)
-  const lastMod = new Date('2023-05-15').toISOString()
-  
-  // URLs para calculadoras
-  const calculatorUrls = calculators.map((calculator) => ({
-    url: `${baseUrl}/calculadora/${calculator.slug}`,
-    lastModified: lastMod,
-    changeFrequency: 'monthly' as const,
-    priority: 0.8,
-  }))
+
+  const calculatorsDir = path.join(process.cwd(), 'content/calculators')
+
+  const calculatorUrls = await Promise.all(
+    calculators.map(async (calculator) => {
+      const filePath = path.join(calculatorsDir, `${calculator.slug}.mdx`)
+      let mtime = new Date()
+      try {
+        const stats = await fs.stat(filePath)
+        mtime = stats.mtime
+      } catch {
+        // ignore errors and use current date
+      }
+
+      return {
+        url: `${baseUrl}/calculadora/${calculator.slug}`,
+        lastModified: mtime.toISOString(),
+        changeFrequency: 'monthly' as const,
+        priority: 0.8,
+      }
+    })
+  )
+
+  const latestCalculatorDate = calculatorUrls.reduce<Date>((latest, item) => {
+    const d = new Date(item.lastModified)
+    return d > latest ? d : latest
+  }, new Date(0))
+
+  const lastMod = latestCalculatorDate.toISOString()
   
   // URLs para categorias
   const categoryUrls = [
