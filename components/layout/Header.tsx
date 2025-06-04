@@ -81,6 +81,12 @@ export default function Header() {
               Negócios
             </Link>
             <Link
+              href="/blog"
+              className={`hover:text-blue-600 ${pathname.startsWith('/blog') ? 'text-blue-600 font-medium' : 'text-gray-600'}`}
+            >
+              Blog
+            </Link>
+            <Link
               href="/sobre"
               className={`hover:text-blue-600 ${pathname === "/sobre" ? "text-blue-600 font-medium" : "text-gray-600"}`}
             >
@@ -155,6 +161,13 @@ export default function Header() {
                 onClick={() => setIsMenuOpen(false)}
               >
                 Negócios
+              </Link>
+              <Link
+                href="/blog"
+                className={`hover:text-blue-600 ${pathname.startsWith('/blog') ? 'text-blue-600 font-medium' : 'text-gray-600'}`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Blog
               </Link>
               <Link
                 href="/sobre"
